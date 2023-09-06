@@ -1,16 +1,30 @@
 Handbook - https://git.cybbh.space/programming/python/public/-/blob/master/activities/Python_Student_Handbook/PyStuHBK.adoc?ref_type=heads 
 Setup Guide - https://cctc.cybbh.io/students/students/latest/Day_0_Setup
-linux 10.50.40.185 use -x option  ssh student@10.50.40.185 -x (password is password)
+
+linux 10.50.40.185 use -X option  ssh student@10.50.40.185 -X (password is password) terminator
 windows 10.50.30.94
 
 touch "Scriptname".py
 vim to edit
+cat to display
+
+vim .vimrc (press i to insert text):
+syntax enable
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set number
+filetype indent on
+set autoindent
+
 #!/usr/bin/env python3
 
-cat to display
-python3 to run; give execution permissions chmod +x
+python3 to run or ./(scriptname); give execution permissions chmod +x
 ctrl + l to clear
 quit() to exit back to ssh
+
+======================================================================================================================================
+
 type(variable_name) to display type of variable
 change variable type by putting type of variable wanted and then (variable_name) ex: bool(), int(), float(), str()
 all commands in python needs ()
@@ -22,6 +36,18 @@ strings and tuples are immutable use [-1] to see last element
 ''.join() put delimiter/what to put between parts to join list together in quotes and variable of what you're joining in parens
 list(variable) to see each individual part of str; can set another variable equal to in order to make a list of individual parts of a str
 
+BRANCHING
+IF STATEMENTS
+if <condition>:
+    <indented code block>
+elif <condition>:
+    <indented code block>
+else:
+    <indented code block>
+WHILE STATEMENTS (executes only while condition is true)
+while <condition>:
+  <code block>
+
 
 vim .vimrc (press i to insert text):
 syntax enable
@@ -32,7 +58,42 @@ set number
 filetype indent on
 set autoindent
 
+======================================================================================================================================
+
 ACTIVITIES
 cd
 git clone https://git.cybbh.space/programming/python/public.git
 cd public
+
+EMAIL SPLIT ACTIVITY
+email='name@somewhere.com'
+user=email.split('@')
+a='.'.join(user)
+split=a.split('.')
+print(split)  
+FIZZBUZZ ACTIVITY
+number = int(input('Enter a positive number: '))
+if ((number%3)==0) and ((number%5)==0):
+  print('fizzbuzz')
+elif (number%3) == 0:
+  print('fizz')
+elif (number%5) == 0:
+  print('buzz')
+else:
+  print(number)
+GUESS THE NUMBER ACTIVITY
+def guess_number(n):
+     while True:
+         x = int(input('Enter a Number Between 0 and 100: '))
+         
+         if x > n:
+             print('too high')
+             continue
+         elif x < n:
+             print('too low')
+             continue
+         if x == n:
+             print('WIN')
+             break
+             
+guess_number(23)
