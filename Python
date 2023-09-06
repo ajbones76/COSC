@@ -19,7 +19,7 @@ square brackets [] are a list
 parens () are a tuple
 strings and tuples are immutable use [-1] to see last element
 .split() put delimiter/where you want str to split in parens with ''
-.join() put delimiter/what to put between parts to join list together
+''.join() put delimiter/what to put between parts to join list together in quotes and variable of what you're joining in parens
 list(variable) to see each individual part of str; can set another variable equal to in order to make a list of individual parts of a str
 
 
