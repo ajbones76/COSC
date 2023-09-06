@@ -35,6 +35,12 @@ strings and tuples are immutable use [-1] to see last element
 .split() put delimiter/where you want str to split in parens with ''
 ''.join() put delimiter/what to put between parts to join list together in quotes and variable of what you're joining in parens
 list(variable) to see each individual part of str; can set another variable equal to in order to make a list of individual parts of a str
+format(a,'0>8b') - converts "a" to binary and pads out to 8 bits with 0s
+list(range()) - START, STOP, STEP - up to but not including
+print(list[::-1] prints list in reverse order
+
+counter = 0
+enumerate()
 
 BRANCHING
 IF STATEMENTS
@@ -44,10 +50,12 @@ elif <condition>:
     <indented code block>
 else:
     <indented code block>
-WHILE STATEMENTS (executes only while condition is true)
+WHILE LOOPS (executes only while condition is true)
 while <condition>:
   <code block>
-
+FOR LOOPS
+for item in <iterable>:
+  <code block>
 
 vim .vimrc (press i to insert text):
 syntax enable
@@ -97,3 +105,27 @@ def guess_number(n):
              break
              
 guess_number(23)
+
+INVERT AND PLACE BACK INTO SAME LIST IN SAME POSITION
+def invert(l);
+    for n in range(0,len(l)):
+        l[n] = str(255 - int(l[n]))
+    pass
+INVERTED - INVERT AND PLACE INTO DIFFERENT LIST
+def inverted(l):
+    result = []
+    counts = 0 
+    for num in l:
+        result.append(str(255 - int(num)))
+        counts += 1
+    return result
+
+COUNTER
+counts = 0
+for num in l:
+    l[counts] = str(255-int(num))
+    counts +=1
+
+ENUMERATE
+for count,num in enumerate(l):
+    l[count] = str(255-int(num))
