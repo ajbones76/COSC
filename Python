@@ -48,6 +48,9 @@ to call value run variable['key'] - to add to dictionary run variable['newkey'] 
 
 fp.read(number) - return however many bytes as the number in parens
 
+*args in function allows multiple inputs
+**kwargs allows for names keywords with arguments
+
 
 counter = 0
 enumerate()
@@ -156,3 +159,27 @@ def steg_decode_char(stego):
         msgbits.append(bin(int(b))[-1])
     return chr(int(''.join(msgbits),2))
 
+FIND TOTAL NUMBER OF CHARACTERS IN TEXT FILE
+with open('textfile','r') as fp:
+    num=len(fp.read())
+FIND TOTAL NUMBER OF WORDS IN TEXT FILE
+with open('textfile','r') as fp:
+    num_words=len(fp.read().split())
+FIND THE NUMBER OF LINES IN TEXT FILE
+with open('textfile','r') as fp:
+    num_lines=len(fp.readlines())
+ASSIGN FIRST 30 CHARACTERS OF TEXT FILE TO NEW VARIABLE
+with open('textfile','r') as fp:
+    chars=fp.read(30)
+ASSIGN 3RD WORD OF EACH LINE TO LIST FROM TEXT FILE
+three=[]
+with open('textfile','r') as fp:
+    for i in fp.readlines():
+        three.append(i.split()[2])
+FIND SPECIFIC CHARACTER IN TEXT FILE AND ADD WORD CONTAINING SAID CHARACTER TO LIST
+pwords=[]
+with open('textfile','r') as fp:
+    lines=fp.read()
+    for i in lines.split():
+        if 'p' in i:
+            pwords.append(i)
