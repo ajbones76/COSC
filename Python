@@ -51,6 +51,8 @@ fp.read(number) - return however many bytes as the number in parens
 *args in function allows multiple inputs
 **kwargs allows for names keywords with arguments
 
+variable.lower() makes everything lowercase
+
 
 counter = 0
 enumerate()
