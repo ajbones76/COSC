@@ -25,6 +25,7 @@ quit() to exit back to ssh
 
 ======================================================================================================================================
 
+index of -1 is last place
 type(variable_name) to display type of variable
 change variable type by putting type of variable wanted and then (variable_name) ex: bool(), int(), float(), str()
 all commands in python needs ()
@@ -35,9 +36,18 @@ strings and tuples are immutable use [-1] to see last element
 .split() put delimiter/where you want str to split in parens with ''
 ''.join() put delimiter/what to put between parts to join list together in quotes and variable of what you're joining in parens
 list(variable) to see each individual part of str; can set another variable equal to in order to make a list of individual parts of a str
-format(a,'0>8b') - converts "a" to binary and pads out to 8 bits with 0s
+
+format(a,'0>8b') - converts "a" to binary and pads out to 8 bits with 0s - msgbin = format(ord(msg),'0>8b') - converts a msg to its binary and saves it to msgbin
+ord('letter') - gives ascii value of letter
+chr(ascii) - give letter back from ascii value
+
 list(range()) - START, STOP, STEP - up to but not including
 print(list[::-1] prints list in reverse order
+dictionary made using curly brackets {} with 'key':value
+to call value run variable['key'] - to add to dictionary run variable['newkey'] = value
+
+fp.read(number) - return however many bytes as the number in parens
+
 
 counter = 0
 enumerate()
@@ -129,3 +139,20 @@ for num in l:
 ENUMERATE
 for count,num in enumerate(l):
     l[count] = str(255-int(num))
+
+STEG ENCODE
+def steg_encode_char(char, cover):
+     msgbin = format(ord(char),'0>8b')
+     for i in range(0,len(cover)):
+         coverbin = list(format(int(cover[i]),'0>8b'))
+         coverbin[-1] = msgbin[i]
+         cover[i] = str(int(''.join(coverbin),base=2))
+     pass
+
+STEG DECODE
+def steg_decode_char(stego):
+    msgbits = []
+    for b in stego:
+        msgbits.append(bin(int(b))[-1])
+    return chr(int(''.join(msgbits),2))
+
