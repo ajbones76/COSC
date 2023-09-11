@@ -359,4 +359,23 @@ def q1(sentence):                                               #100%
 138     '''
 139     pass
 
+====================================================================================================================================
+
+IMPORTANT NOTES - If stuck refer to notes first then handbook
+
+'Hello. My name is {}.'.format('LCpl') OR a='LCpl' b = 'Bones' 'My name is {} {}.'.format(a,b) OR f'My name is {a} {b}.'
+'Read an input from a user' means input function
+list range to show the full list of range EX: list(range(5)) outputs [0,1,2,3,4,5]
+email splitting - split on @ join with . split with .
+ip = 192.168.0.10
+octet = ip.split('.')
+octet0 = octet[0] - compare first octet of ip address
+
+return True, case sensitive
+
+
+
+
+
+
                                                                                                                                                                                                                                  
