@@ -191,4 +191,172 @@ def q1(floatstr):               #20%
 150     '''
 151     pass
 152 
+
+def q1(sentence):                                               #100%
+  4     rev = sentence.split()[::-1]
+  5     l = []
+  6     for i in rev:
+  7         l.append(i)
+  8     return ' '.join(l)
+        or
+        return ' '.join(reversed(sentence.split()))    
+  9     '''
+ 10     Given a string of multiple words separated by single spaces,
+ 11     return a new string with the sentence reversed. The words
+ 12     themselves should remain as they are. For example, given
+ 13     'it is accepted as a masterpiece on strategy', the returned
+ 14     string should be 'strategy on masterpiece a as accepted is it'.
+ 15     '''
+ 16     pass
+ 17 
+ 18 def q2(n):                                                      #100%
+ 19     digit = format(n, ',d')
+ 20     return str(digit)
+    OR
+        return '{:,}.format(n)
+ 21     '''
+ 22     Given a positive integer, return its string representation with
+ 23     commas seperating groups of 3 digits. For example, given 65535
+ 24     the returned string should be '65,535'.
+ 25     '''
+ 26     pass
+ 27 
+ 28 def q3(lst0, lst1):                                             #100%
+ 29     sortdes = []
+ 30     sortdes = lst0 + lst1
+ 31     sortdes.sort(reverse=True)
+ 32     return sortdes
+    OR
+        a = lst0 + lst1
+        b = sorted(a)
+        c = reversed(b)
+        return list(c)
+    OR
+        return list(reversed(sorted(lst0+lst1)))
+ 33     '''
+ 34     Given two lists of integers, return a sorted list that contains
+ 35     all integers from both lists in descending order. For example,
+ 36     given [3,4,9] and [8,1,5] the returned list should be [9,8,5,4,3,1].
+ 37     The returned list may contain duplicates.
+ 38     '''
+ 39     pass
+ 40 
+ 41 def q4(s1,s2,s3):                                               #100%
+ 42     avg = (s1 + s2 + s3)/ 3
+ 43     if avg > 50:
+ 44         return 'GO'
+ 45     else:
+ 46         return 'NOGO'
+ 47     '''
+ 48     Given 3 scores in the range [0-100] inclusive, return 'GO' if
+ 49     the average score is greater than 50. Otherwise return 'NOGO'.
+ 50     '''
+ 51     pass
+ 52 
+ 53 def q5(integer, limit):                                         #100%
+ 54     lst = [i for i in range (limit) if i % integer==0]
+ 55     return lst
+    OR
+        multiples = []
+        for i in range(0,limit+1):
+            if i % integer == 0 and i % 2 == 0:
+               multiples.append(i)
+        return multiples
+ 56     '''
+ 57     Given an integer and limit, return a list of even multiples of the
+ 58     integer up to and including the limit. For example, if integer==3 and
+ 59     limit==30, the returned list should be [0,6,12,18,24,30]. Note, 0 is
+ 60     a multiple of any integer except 0 itself.
+ 61     '''
+ 62     pass
+ 63 
+ 64 def q6(f0, f1):                                                 #
+ 65     differ = []
+        linenum = 0
+ 66     with open(f0) as fp0:
+            with open(f1) as fp1:
+                lines0 = fp0.readlines()
+                for i in fp1.readlines():
+                    if i != lines0[linenum]:
+                        differ.append(linenum)
+                    linenum += 1
+ 67    return differ     
+ 80     '''
+ 81     Given two filenames, return a list whose elements consist of line numbers
+ 82     for which the two files differ. The first line is considered line 0.
+ 83     '''
+ 84     pass
+ 85 
+ 86 def q7(lst):                                                    #100%
+ 87     norm = []
+ 88     dup = []
+ 89     for i in lst:
+ 90         if i not in norm:
+ 91             norm.append(i)
+ 92         else:
+ 93             dup.append(i)
+ 94     return dup[0]
+    OR
+        seen = []
+        for i in lst:
+            if i in seen:
+                return i
+            else:
+                seen.append(i)
+ 95     '''
+ 96     Return the first duplicate value in the given list.
+ 97     For example, if given [5,7,9,1,3,7,9,5], the returned value should
+ 98     be 7.
+ 99     '''
+100     pass
+101 
+102 def q8(strng):                                                  #100%
+103     short = strng.split()
+104     return len(min(short, key=len))
+105     '''
+106     Given a sentence as a string with words being separated by a single space,
+107     return the length of the shortest word.
+108     '''
+109     pass
+110 
+111 def q9(strng):                                                  #100%
+112     asc = []
+113     spl = list(strng)
+114     num = ' '.join(spl)
+115     for i in num:
+116         if i.isdigit():
+117             asc.append(i)
+118     asci = str(''.join(asc))
+119     return chr(int(asci))
+    OR
+        chars = []
+        for c in strng:
+            if c.isdigit():
+                chars.append(c)
+        return chr(int(''.join(chars)))
+121     '''
+122     Given an alphanumeric string, return the character whose ascii value
+123     is that of the integer represenation of all of the digits in the string
+124     concatenated in the order in which they appear. For example, given
+125     'hell9oworld7', the returned character should be 'a' which has
+126     the ascii value of 97.
+127     '''
+128     pass
+129 
+130 def q10(arr):                                                   #100%
+131     for i, j in enumerate(arr, arr[0]):
+132         if i!=j:
+133             return j
+    OR
+        for i in range(len(arr)):
+            if (arr[i+1] - arr[i]) != 1:
+                return arr[i+1]
+        return None
+134     '''
+135     Given a list of positive integers sorted in ascending order, return
+136     the first non-consecutive value. If all values are consecutive, return
+137     None. For example, given [1,2,3,4,6,7], the returned value should be 6. 
+138     '''
+139     pass
+
                                                                                                                                                                                                                                  
