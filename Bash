@@ -1,1 +1,176 @@
+Handbook - https://cted.cybbh.io/tech-college/pns/public/pns/latest/guides/bash_sg.html
+Online man pages - https://linux.die.net/man/
+
+File manipulation commands - touch, mkdir, rm, rmdir, ls, cd, pwd, cp, mv
+Find files and directories - locate, whereis, which, find
+*Find and Cut commands*
+
+Bash Keyboard Shortcuts
+
+CTRL + A - brings cursor to beginning of line
+CTRL + E - brings cursor to end of line
+CTRL + U - erases line
+CTRL + R - search bar; press enter to run command found
+CTRL + L - brings terminal line all the way to top
+
+Man Shortcuts
+
+Shift + G - brings you down to last line
+g - takes to beginning
+/ - search in man
+n - next instance of what you searched
+Shift + n - previous instance
+qq - quit man page
+
+Command Chaining
+&   --Sends process to background (so we can run multiple process parallel)
+;   --Run multiple commands in one run, sequentially.
+ \  --To type larger command in multiple lines
+&&  --Logical AND operator
+||  --Logical OR operator
+!   --NOT operator
+|   -- PIPE operator
+{}  --Command combination operator.
+    [ -f 99.txt ] || { echo " does not exist"; touch 99.txt; }
+()  --Precedence operator
+
+Redirection
+>                                   creates new file with STDOUT; if file exists, it is overwritten
+>>                                  appends STDOUT to existing file; if file doesn’t exists, it is created
+2>                                  creates new file with STDERR; if file exists, it is overwritten
+2>>                                 appends STDERR to existing file; if file doesn’t exists, it is created
+&>                                  creates new file with STDOUT+STDERR; if file exists, it is overwritten
+<                                   use contents of file as STDIN
+<<                                  accepts ASCII text as STDIN on the following lines
+<>                                  specified file is used as both STDIN and STDOUT
+
+Linux Knowledge
+
+/ - root
+touch - new file
+touch -t - change timestamp on file (YYYYMMDDHHMM)
+mkdir -p - new directory
+rm - remove; -rf recursively force deletion
+ls -al - shows hidden files (period means hidden file)
+ls -l ~/*.sh - shows anything with .sh extension
+ls -il - shows linked files
+cp source file destination
+mv - move file or rename file if no destination specified
+symbolic link will not persist if file its linked to is deleted; hard link will persist
+ps -u Jim 		IDs processes use by user: Jim
+ ps --forest 		show complete process tree with parent child relationships
+ ps -u Jim –-forest 	show for user: Jim only
+ ps u U Jim –-forest 	owned by user: Jim
+ ps aux 		a == shows all procs running on system
+ 			      u == users running the proc
+ 			      x == CMDs that ran the procs.
+kill <pid>
+pkill <process name>
+killall <name>
+
+Find Command - options can be stacked
+
+find <location> <thing to search for> - defaults to starting at root
+find -name		denotes case-sensitive file
+find -iname 		denotes case-insensitive file
+find -ilname 		" and symbolic linked files
+find -inum ##### 	searches for file w/ inode "#####"
+find -size 		denotes file of "x" size
+find -size 10c 	finds file of size exactly 10 bytes
+find -size +10M -20M 	finds file of size greater than 10MB and less than 20MB
+find -size -1G 	finds file of size less than 1GB
+find -group 		denotes belonging to group "name"
+find -gid 		denotes files belonging to group ID "###"
+find -user		denotes files belonging to user: "name"
+find -uid 		denotes files belonging to user ID: "###"
+find -maxdepth <number> 	searches to designated depth only for designated files 
+find /* 		starts recursive search at "/"
+find /* -type d	  " for directories ONLY
+find /* -type f	  " for files ONLY
+find /* -type p 	" for named-pipes ONLY
+find /* -type l	  " for symbolic links ONLY
+find /* -type s	  " for sockets ONLY
+find / -type s -exec echo {} 2>/dev/null ; | grep domain* finds socket files 2>/dev/null gets rid of all errors
+find -name \*.txt 	searches from pwd recursively for files ending in ".txt"
+find -atime 3 	accessed in last 3 days
+find -ctime 2		changed 2 days ago
+find -mtime 2		modified 2 days ago
+find $HOME -mtime 0 	searches for files modified in last 24hrs in current-user home-dir
+find -cmin -30		changed last 30 minutes
+find -amin -60		accessed last hour
+find -mmin -60		modified in last hour
+find -empty		searches for empty files ONLY
+find -executable	Matches files which are executable and directories which are searchable
+find -executable ! -type d  finds all executables that are not directories
+find -exec		execute CMD;true is "0" status returned -exec <command> {} \;
+find /var/log -iname *.log 2>/dev/null -printf "%i %f\n" | more  %i shows inode number; %f shows filename
+find /var/log/ -iname *.log -exec ls -al {} 2>/dev/null \; finds all .log files in directory: /var/log/ and lists them all
+find -path	-	searches in designated path
+find -ls	- lists files that are found
+find -print - print output and automatically adds new-line
+find -printf \n  prints output followed by new-line
+find -prune		searches for files recursively but avoids descending into dirs
+find -perm		denotes files with designated permissions level
+find / -perm /4000 -uid 0 -ls 2>/dev/null - finds all SUID files owned by "root" and displays them
+find / -perm -2 -type f 2>/dev/null - finds all GUID world files
+find / -perm -2 ! -type -l -ls 2>/dev/null - finds all GUID world files that are not links
+find / ! -path "/proc/*" ! -path "/root/*" -perm -2 -type -f -ls 2>/dev/null - finds all world files not in directories: /proc OR /root
+find / -perm /2 -ls 2>/dev/null
+
+Grep Command
+
+grep <search term> <location to be searched>
+cat <location/file> | grep <what you're searching for>
+grep -C <number of lines> <search term>  displays that number of lines before and after match 
+grep -v                 inverts results - show everything but what you specified
+grep -n                 shows line number in file that result is on
+grep -c                 counts number of lines that match
+grep -r ; grep -R       recursive
+grep -f                 files only
+grep -E                 regular expressions (GNU)
+grep -o                 displays ONLY matches of regex / not whole line
+egrep                   used for regex
+grep -i                 case-insensitive match
+grep -l                 displays only file name (full path) of matching regex
+grep -C#                in context of match (# of lines before and after)
+grep -A#                displays # of lines after matching regex
+grep -B#                displays # of line before matching regex
+grep -P                 uses Pearl regular expressions (non-GNU)
+grep ""                 shell quoting (BASH interpretable)
+grep ''                 shell quoting (NOT BASH interpretable)
+
+Regex Wildcards
+
+? 		matches 0 or more occurances (may or may not occur) +
+. 		any single character
+*		any chars
+^		represents start of string
+$		represents end of string
+[a-zA-Z0-9]	can contain any within range [..]
+[1..99] 	denotes range from 1 to 99
+{1,3} 		can contain as few or as many of {..,..}
+[1-3]*		denotes one or more matches to [1-3]
+.*		used to match any single character one or more times
+\. 		matches the actual dot "."
+\?		matches the actual question mark "?"
++		matches 1 or more occurances
+(….)		denote sub-expressions
+"cat|dog[fish]" can match either cat fish OR dog fish
+$touch \{cat,dog,flying,running}fish
+$ls -1 | grep "cat|dog[fish]"
+| 		matches either (….) | (….) essentially an "OR"
+
+Brace Expansion
+
+touch file{1..5}  creates file1, file2, file3, file4, amd file5; works with letters as well; can be put wherever you want in that filename
+
+Cut Command
+
+cut -d: -f1         displays only portion of line before 1st instance of delimiter ``:''  put delimiter that you want after -d
+cut -d: -f1-        " and any following strings up to the very next instance ``:''  -f1-3 shows fields 1-3
+cut -d: -f1- -s     " " but don’t print any lines not containing delimiter ``:''
+cut -f3             displays only the 3rd field delimited by space
+cut -f2-4           displays only fields 2 through 4 delimited by space
+cut -c3-10          displays only the 3rd through 10th characters of each line
+NOTE: Tabs are counted as single spaces on a line; both are counted as single characters
 
