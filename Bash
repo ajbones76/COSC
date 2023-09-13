@@ -168,7 +168,7 @@ touch file{1..5}  creates file1, file2, file3, file4, amd file5; works with lett
 
 Cut Command
 
-cut -d: -f1         displays only portion of line before 1st instance of delimiter ``:''  put delimiter that you want after -d
+cut -d: -f1         displays only portion of line before 1st instance of delimiter ``:''  put delimiter that you want after -d ' ' for space
 cut -d: -f1-        " and any following strings up to the very next instance ``:''  -f1-3 shows fields 1-3
 cut -d: -f1- -s     " " but don’t print any lines not containing delimiter ``:''
 cut -f3             displays only the 3rd field delimited by space
