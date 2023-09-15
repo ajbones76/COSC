@@ -176,3 +176,38 @@ cut -f2-4           displays only fields 2 through 4 delimited by space
 cut -c3-10          displays only the 3rd through 10th characters of each line
 NOTE: Tabs are counted as single spaces on a line; both are counted as single characters
 
+Awk Command
+
+awk -F: '{print $1}'         displays 1st field delimited by a ":"
+awk '{print $2}'             displays 2nd field, delimited automatically by space
+awk '{print $0}'             displays all string data that matches
+awk -F: '($3 == 0) {print $1}' /etc/passwd     displays 1st field (username) IF the 3rd field (UID) is equal to "0"
+awk '{print $NF}'           displays only the last field of every line
+
+Sed Command
+
+sed '/.dll/{x;p;p;p;x}' -i document.txt    directly alters document.txt by adding 3 empty lines before the designated regex (.dll)
+sed '/stuff/G;/stuff/G' -i document.txt    directly alters document.txt by adding 2 empty lines after the designated regex (stuff)
+sed -i -e 's/ANCHOVIES/SAUSAGE/g' pizaster.htm    replaces every instance of "ANCHOVIES" with "SAUSAGE" on pizaster.htm
+sed -i -e 's/ANCHOVIES//g' pizaster.htm    removes every instance of "ANCHOVIES" on pizaster.htm
+sed -i '/^#/d' /etc/hosts.allow            removes all lines starting with "#" from file /etc/hosts.allow
+
+Command Substitution
+
+A=$(Command)            A=$(cat /etc/passwd)
+`Command`               `cat /etc/passwd`
+
+Sort Command
+
+sort                sorts content according to position on the ASCII table
+sort -n             sorts content numerically
+sort -u             sorts content uniqely
+sort -nr            sorts content numerically reversed
+sort -t +
+sort -k 2,4         sorts 1st by content in the 2nd column, then by content in the 4th column
+
+Uniq Command - Have to use sort with no options before uniq, then can use sort with options after
+
+uniq                sorts content uniqely
+uniq -c             sorts content uniqely with a count reading
+
