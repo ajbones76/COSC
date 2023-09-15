@@ -299,3 +299,5 @@ Can use positional parameters $1, $2, etc
 Add the input/arguments after ./bash.sh
 Ex: ./bash 5 2     $1 would = 5 $2 would = 2
 
+md5sum     cannot md5 a directory
+-          means it's a string
