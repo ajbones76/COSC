@@ -183,14 +183,17 @@ awk '{print $2}'             displays 2nd field, delimited automatically by spac
 awk '{print $0}'             displays all string data that matches
 awk -F: '($3 == 0) {print $1}' /etc/passwd     displays 1st field (username) IF the 3rd field (UID) is equal to "0"
 awk '{print $NF}'           displays only the last field of every line
+OFS           Output Field Separator - allows you to replace default space delimiter with what we want in the output
+BEGIN         Tells awk to begin here and execute everything after
 
-Sed Command
+Sed Command - Stream Editor
 
 sed '/.dll/{x;p;p;p;x}' -i document.txt    directly alters document.txt by adding 3 empty lines before the designated regex (.dll)
 sed '/stuff/G;/stuff/G' -i document.txt    directly alters document.txt by adding 2 empty lines after the designated regex (stuff)
 sed -i -e 's/ANCHOVIES/SAUSAGE/g' pizaster.htm    replaces every instance of "ANCHOVIES" with "SAUSAGE" on pizaster.htm
 sed -i -e 's/ANCHOVIES//g' pizaster.htm    removes every instance of "ANCHOVIES" on pizaster.htm
 sed -i '/^#/d' /etc/hosts.allow            removes all lines starting with "#" from file /etc/hosts.allow
+-i      permanently change
 
 Command Substitution
 
@@ -210,4 +213,89 @@ Uniq Command - Have to use sort with no options before uniq, then can use sort w
 
 uniq                sorts content uniqely
 uniq -c             sorts content uniqely with a count reading
+
+Conditionals
+
+-e          file exists ?
+-f          file exists, and is regular file ?
+-d          file exists, and is a directory ?
+-s          file exists, and is NOT empty ?
+-x          file exists, and IS executable ?
+-w          file exists, and is writable by me ?
+-gt >       is greater than
+-lt <       is less than
+-ge         is greater than or equal to
+-le         is less than or equal to
+-eq ==      is equal to
+-ne !=      is NOT equal to
+
+Aliases
+
+alias rm='rm -i'                    creates alias to confirm removal
+alias vim='nano'                    creates an alias for `nano'
+alias gedit='nano'                  "
+alias vi='nano'                     "
+alias x='cat etc/passwd'            creates an alias for Command: cat/etc/passwd
+alias y=$(cat /etc/shadow)          " cat /etc/shadow
+alias ls='ls -al'                   creates an alias causing 'ls -al' to be run when 'ls' is used
+\ls                                 negates the alias function, so we can run 'ls' without '-al'
+alias -p                            view all aliases set (local and global)
+unalias ls                          unaliases ls so it no longer resolves to 'ls -al'
+
+IF Statements
+
+if [[ banana == apple ]]; then
+echo "banana IS an apple"
+else
+echo "banana is NOT an apple";
+fi
+= banana is NOT an apple
+
+Variable Syntax
+use $ to call variable
+echo $a
+A=value                 A=120
+B=value                 B=20
+expr $A - $B            =100
+C=$(expr $A - $B)
+echo $C                 =100
+D=.mp3                  for x in $(cat songs); do sed -i "s/$/$D/"; done
+                        =appends .mp3 to the end of every song in file: songs
+
+Special Parameters (Builtin Variables)
+
+$*       The positional parameters, starting from one.
+$@       The positional parameters, starting from one.
+$#       The number of positional parameters.
+$?       The exit status of the previous command.
+$-       The current option flags of the shell.
+$$       The process ID of the shell.
+$!       The process ID of the most recent background job.
+$0       $0 is set to the name of the script.
+$_       First command in a script, is the path/name of the script as invoked. Otherwise, it is the last parameter passed to the most recent command.
+
+Bash Exit Codes
+
+0        Success
+1        General Error
+2        Misuse of shell built-ins
+
+Bash Shabang - #!/bin/bash    save file with .sh
+
+Bash Functions
+
+Put local in front of variable name to make it a local variable
+myfunc() {
+        commands
+        more commands
+}
+
+#Call the function
+myfunc
+
+Variable Substitution
+
+Can use positional parameters $1, $2, etc
+Add the input/arguments after ./bash.sh
+Ex: ./bash 5 2     $1 would = 5 $2 would = 2
 
