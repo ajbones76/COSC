@@ -301,3 +301,43 @@ Ex: ./bash 5 2     $1 would = 5 $2 would = 2
 
 md5sum     cannot md5 a directory
 -          means it's a string
+
+\;         every item will execute command
++          execute command all at once
+wc -l      count lines
+
+While Loops
+
+x=0
+while [[ $x -le 10 ]] ; do
+  echo $x
+  x=$(($x+1))
+done
+
+For Loops
+
+for x in {0..10}; do
+  echo $x
+done
+
+for x in {cosc,jcac,mct,'parris island'}; do          strings, if space must be put in single quotes
+  echo $x
+done
+
+for x in $(cat list); do             command substitution
+  echo $x
+done
+
+for x in $(cat /etc/passwd | awk -F: '{print $1}')
+  do echo $x is a user on this computer
+done
+
+for a in 1 2 3 4 5 6 7 8 9 10
+do
+  if [ $a ==5 ]
+  then
+    break
+  fi
+  echo Iteration is $a
+done
+
