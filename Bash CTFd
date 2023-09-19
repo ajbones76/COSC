@@ -258,3 +258,20 @@ cat high.txt | sort | uniq -c | sort -nr
 echo -e ''
 echo 'Files w/ OCTAL Perm Values 0-640:'
 cat low.txt | sort | uniq -c | sort -nr
+
+OR
+
+find /etc -type f -exec stat -c '%a' {} \; > ./perms 2>/dev/null
+
+for x in $(cat ./perms); do
+        if [[ $x -le 640 ]]; then
+                echo "$x" >> ./low
+        elif [[ $x -ge 642 ]]; then
+                echo "$x" >> ./high
+        fi
+done
+
+echo "Files w/ OCTAL Perm Values 642+:"
+cat ./high | sort | uniq -c | sort -nr
+echo "Files w/ OCTAL Perm Values 0-640:"
+cat ./low | sort | uniq -c | sort -nr
