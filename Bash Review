@@ -1,0 +1,37 @@
+cat etc/passwd | cut -d: -f1        reads every username in etc/passwd
+cut -d: -f1 /etc/passwd
+
+sort -nr -k4                        sorts alphanumerically reversed based on 4th column
+
+grep -v -o -r -i -E 
+
+find <location> -name -iname -type f,p,d -mtime 1 (files modified in last day) 
+          -exec <command> <options> {} \;     executes command against every object (foreach)
+          -exec <command> <options> {} +      executes command against everything all at once
+
+tar -c    create
+    -v    verbose
+    -f    file
+    -z    gzip
+
+wc -l    
+
+DELETE
+    rm       delete file
+    rmdir    delete directories
+
+touch 
+    -d       "2020-09-19 09:00:00"    FILE
+    -t       [[CC]YY]MMDDhhmm[.ss]    FILE
+
+kill
+pkill
+kill -9
+killall
+
+if [[ <condition> ]]; then
+    commands
+elif [[ <condition> ]]; then
+    commands
+fi
+
