@@ -51,7 +51,7 @@ $True  -  True
 $Matches  -  Hash Table of RegEx matches
 user defined variables  -  not persistent through reboot
 ("Hello").gettype().name  -  get the data type
-$env:<varriable>  -  environmental variables
+$env:<variable>  -  environmental variables
 escape character is grave `
 
 ARRAYS
