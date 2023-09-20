@@ -1,1 +1,80 @@
+https://cted.cybbh.io/tech-college/pns/public/pns/latest/guides/ps_sg.html  -  Powershell Student Guide
+https://cted.cybbh.io/tech-college/pns/public/pns/latest/guides/WOBC_Student_Guide.html
 
+xfreerdp /u:student /v:10.50.30.94 -dynamic-resolution +glyph-cache +clipboard  -  Windows VM - Password is password
+
+powershell.exe is a wrapper for a dll of powershell called system.Management.Automation.dll
+powershell is compatitble with other OS
+Command structure verb noun
+can run external commands as well
+case insensitive
+arguments in [] mandatory
+single quotes literal string will show variable as $var instead of what is stored in variable
+
+HELP SYSTEM
+
+get-help  -  make sure help is in latest version  -  update-help
+get-help <cmdlet>
+get-help get-command -online
+get-help about_*  -  about pages
+get-help about_Script_Blocks -showWindow
+
+Aliases
+
+$Alias:<command>
+get-alias  -  list of all aliases
+get-alias -definition <command>  -  lists all aliases of the cmdlet
+user defined  -  set-alias  <alias> -  creates alias  -  remove-item alias:<alias>  -  removes alias
+user defined are not persistent through shutdown
+powershell profiles can be used to make aliases persistent
+environmental  -  already built-into system
+
+Objects  -  everything in powershell is an object
+made up of properties - describe an object - and methods - things an object can do
+(get-process).process.name  -  property
+(get-process).kill()  -  method
+get-process | get-member  -  tells you all properties and methods
+get-process | get-member -membertype properties  -  shows all properties of object
+$_  -  pipeline variable
+
+write-output  -  going through pipeline then to screen
+write-host  -  going straight to host not through pipeline
+
+VARIABLES
+
+$<variable> = <value>
+call variable with $
+system variables  -  defined by system, always there
+$_ or $PSItem  -  Object in current pipeline; $PSItem more consistent in functions
+$False  -  False
+$True  -  True
+$Matches  -  Hash Table of RegEx matches
+user defined variables  -  not persistent through reboot
+("Hello").gettype().name  -  get the data type
+$env:<varriable>  -  environmental variables
+escape character is grave `
+
+ARRAYS
+not restricted to just one value type
+an array can have multiple arrays inside of it
+
+$jagarray = "joe", "jim", "jan", (1, ('apple', 'pear'), 3), "jay"     #jagged array
+$jagarray[3][0]    #have to call both arrays; will display 1
+
+$multiarray = @(
+    (35.7219, 51.3347, "Tehran"),
+    (39.9042, 116.4074, "Bejing"),
+    (33.5138, 36.2765, "Damascus")
+    )
+$multiarray[1][2]   #displays Bejing
+
+Hash Tables  -  dictionary; key-value pairs
+
+separate key-value pairs with semicolon ;
+any type of data can be put in hash table
+$muhlist = @{First = "george" ; last = "lucas"; mid = "yes"}     #defines hash table
+$muhlist["first"]   #call by key
+$muhlist.last       #call by key
+$muhlist.Keys     #list all keys
+$muhlist.Values   #list all values
+$muhlist[$muhlist.keys]    #displays all values
