@@ -78,3 +78,171 @@ $muhlist.last       #call by key
 $muhlist.Keys     #list all keys
 $muhlist.Values   #list all values
 $muhlist[$muhlist.keys]    #displays all values
+
+$list = @{ element1 = 5; array1 = 1..5; array2 = 6,7,8}    #array inside of hash table
+$list.array1[0]     #call value in array in hash table; displays 1
+
+======================================================================================================================================
+DAY 2
+
+$date = {(Get-Date).Second}     #create script block
+& $date    #call script block
+$a = 1
+$b = {1+1}
+$a += &$b
+$a
+
+SORTING
+
+Get-ChildItem | Sort-Object -Property Length -Descending     #Sort files by size, biggest to smallest
+sort then groupby to avoid multiple blocks
+-like comparison operator accepts wildcards
+-match uses regex
+
+Get-Service | Sort-Object Status | ft -GroupBy status
+Get-ChildItem | Group-Object Extension | Sort-Object Count -Descending
+Get-Process | Group-Object {$_.Name.Substring(0,1).ToUpper()} | ForEach-Object{($_.Name + " ") *7; "=========="; $_.Group}
+Get-Process | Select-Object -First 10
+Get-Process | Sort-Object StartTime | Select-Object -Last 10 | ft ProcessName, StartTime
+Get-Process | Select-Object Name,ID
+Get-Service | Select-Object -ExcludeProperty Name         #Expand on elipses(...) for things that were cut off
+
+Where-Object
+
+Get-Service | Where-Object{$_.Status -eq 'running'}       #Returns only the services running
+Get-ChildItem *.txt | Where-Object{$_.Length -gt 100}
+Get-Process | Where-Object {$_.Company -like 'micro*'} | ft Name, Description, Company
+
+1,2,3,1,2,3,1,2,3 | sort-object | Get-Unique           #sort then unique
+
+Get-ChildItem | Measure-Object Length          #number of files 
+(Get-ChildItem).count        #Count objects in directories including directories
+
+$array=1,2,3,4,5
+$sum = 0
+$array | ForEach-Object { $sum += $_ }
+$sum
+
+CUSTOM OBJECTS
+
+$mytruck = New-Object Object
+Add-Member -MemberType NoteProperty -Name Color -Value Red -InputObject $mytruck
+Add-Member -MemberType NoteProperty -in $mytruck -Name Make -Value Ford
+Add-Member -InputObject $mytruck NoteProperty Model "F-1Shitty"
+$mytruck | Add-Member NoteProperty Cab Supercrew
+$mytruck
+$mytruck.model
+Add-Member -MemberType ScriptMethod -InputObject $mytruck -Name Drive -Value {"Going to the junkyard"}
+
+$Soldier = [PSCustomObject]@{               #Create custom object in one go
+    "FirstName" = "Joe"
+    "LastName" = "Snuffy"
+    "Rank" = "SSGT"
+    "MOS" = "17C"
+    "Position" = "Instructor"
+    }
+
+COMPARISON OPERATORS - i for inverse
+
+-eq                 Equals
+-ne                 Not Equal
+-gt                 Greater Than
+-lt                 Less Than
+-ge                 Greater Than or Equal To
+-le                 Less Than or Equal To
+-contains           Contains (used for a collection of items)
+-match              Matches anywhere in the string
+-like               Both sides of expression are identical
+-in                 Returns true when value is contained within a collection
+-replace            Replaces a string pattern
+-is                 Returns true if both objects are the same type
+
+1,2,3 -eq 2     #returns every value that is eq
+2 -eq 1,2,3     #returns false
+"Powershell", "server" -like "*shell"     #returns Powershell
+"Powershell", "server" -nlike "*shell"    #returns server
+"Powershell" -like "*shell"               #returns true
+
+$text = 'Here is the model number: MO5364'
+$pattern = 'MO(\d{3})'     #each set of parens will be new key-value in $matches
+$text -match $pattern      #returns true
+$matches       #returns the value matched can call using index value
+
+$fruit = 'apple','orange','pear','tomato'
+$fruit -contains 'tomato'
+
+$num = 5
+(($num -gt 1) -and ($num -lt 10))     #returns true
+
+If (condition) {
+    #code to be executed if condition applies
+}
+
+$x = 11
+if($x -gt 10){"$x is larger than 10"}
+else{                                 #can use else or elseif
+        "$x is smaller than 10"
+        }
+
+$time = Get-Date -Hour
+Switch($time) {
+  6 {"Morning"; break}
+  12 {"Noon"; break}
+  18 {"Evening"; break}
+  22 {"Night"; break}
+}
+
+$nums = 1,2,3,4,5
+$nums | ForEach-Object{$_ * 2}
+Get-Process | Select-Object -First 10 | ForEach-Object { $_.Name } | ForEach-Object { $_.ToUpper() }
+foreach ($item in gci C:\ -Recurse){$item.name}
+foreach ($item in Get-Process | Select-Object -First 10){$item.name}
+$teams = 'Tigers','pistons','red wings','lions'
+foreach($x in $teams){"Detroit $x suck"}
+
+while(condition) {
+#code to be executed
+}
+$x = 0
+while($x -lt 10) {
+  Write-Host $x
+  $x++
+}
+
+$ans = Read-Host -Prompt "Which character is the best?"
+while(($ans = Read-Host -Prompt "Which character is the best?") -ne "The Hulk") {
+    switch($ans) {
+        "The Hulk" {"You are correct"}
+        "The Flash" {"Wrong"; break}
+        "Ironman" {"Wrong"; break}
+    }
+}
+
+do {
+    code block
+}while(condition)
+
+
+do {
+$ans = Read-Host -Prompt "Which character is the best?"
+    switch($ans) {
+        "The Hulk" {"You are correct"}
+        "The Flash" {"Wrong"; break}
+        "Ironman" {"Wrong"; break}
+    }
+}while($ans -ne "The Hulk")
+
+$num =0
+do {
+    $num
+    $num ++
+    }until($num -gt 3)
+
+for (initialization; condition; increment)
+{
+    code block to be executed
+}
+
+for($i = 0; $i -le 255; i++) {
+    Write-Host 192.168.0.$i
+}
