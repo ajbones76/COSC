@@ -200,6 +200,8 @@ foreach ($item in Get-Process | Select-Object -First 10){$item.name}
 $teams = 'Tigers','pistons','red wings','lions'
 foreach($x in $teams){"Detroit $x suck"}
 
+foreach-object needs something piped into it
+
 while(condition) {
 #code to be executed
 }
@@ -246,3 +248,103 @@ for (initialization; condition; increment)
 for($i = 0; $i -le 255; i++) {
     Write-Host 192.168.0.$i
 }
+
+=====================================================================================================================================
+DAY 3
+
+STRING MANIPULATION
+
+The backtick character,"`", does two things: - If typed before characters like "$" or quotation marks, Powershell will interpret the characters following the backtick as normal
+
+`n            New Line
+`t            Tabulator (Tab)
+`b            Backspace
+`’            Single Quotation Mark
+`"            Double Quotation Mark
+`0            Null
+``            Backtick Character
+
+$text1 = "One Terabyte is $(1TB / 1GB) Gigabytes"
+$text1
+
+HERE STRINGS
+
+Here-strings are used for text consisting of several lines and/or special characters. Here-Strings give you the ability to store exactly what you want in a variable. PowerShell will automatically resolve variables in Here-Strings
+
+$text = @"
+Here is some text with `"quotes`".        #don't need to use ` on the quotes in a here string
+1TB equals $(1TB / 1GB) GB.
+Variables are resolved
+"$PWD" is your current path
+"@
+$text
+
+String Operators
+
+-f                  Format String Expression
+-replace            replaces strings
+-split              Splits a string
+-join               Joins multiple strings
+
+String Methods
+
+.Split()            splits strings
+.Replace()          replaces strings
+.StartsWith()       Determines whether this string instance starts with the specified character.
+.EndsWith           Determines whether the end of this string instance matches the specified character.
+.ToLower()          Convert string to lower case
+.ToUpper()          Conert String to upper case
+
+Regex
+
+.            Any character except newline
+[^abc]       All characters except one specified
+[^a-z]       All characters expect ones in range specified
+[abc]        One of the characters
+[a-z]        One of the characters in range
+\d           Any number [0-9]
+\D           Any non-number
+\n           Line Break
+\r           Carriage return
+\s           Any whitespace (space, tab, new line)
+\S           Any non-whitespace
+\t           tab
+\w           Letter, number or underline
+W            Non-letter, number, or underline
+
+FUNCTIONS
+
+function <name> {
+    code to execute
+}
+
+
+
+Mandatory parameters prefix parameter variables with    -    [Parameter(Mandatory=$true)]$FirstName
+By default, without this prefix the parameter is optional
+Adding Mandatory parameter to a script will prompt the user if not provided
+Windows PowerShell uses ParamterSets to define groups of parameters. You can choose between which parameter groups to use but you cannot mix the parameters that are in different groups
+
+ADVANCED FUNCTIONS
+
+function bare-bones {
+    [CmdletBinding()]
+    Param(
+        <Define Parameters>
+    )
+    Begin {
+        <code>
+    }
+    Process {
+        <code>
+    }
+    End {
+        <code>
+    }
+}
+These are designed to work like cmdlets. They consist of a $PROCESS* block with optional BEGIN and/or END blocks.
+Function Blocks
+BEGIN          Called prior to processing anything in the pipeline.
+PROCESS        Called once for each object in the pipeline.
+END            Called after all the objects in the pipeline have been processed
+
