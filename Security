@@ -43,8 +43,8 @@ Web servers: nikto -h <IP> -p <open port>
 
 NMAP Scripting
 /usr/share/nmap/scripts
---script=banner=nse,--script=http-enum.nse1
-nmap –script=http-enum.nse <IP> -p<port 80 open>
+--script=banner.nse,--script=http-enum.nse
+nmap --script=http-enum.nse <IP> -p<port 80 open>
 
 Master Sockets
 LinOps>ssh -MS /tmp/gray <user>@<IP>
@@ -56,6 +56,32 @@ LinOps>ssh -S /tmp/gray dummy -O forward -D 9050
 LinOps>ssh -S /tmp/gray dummy -O forward -L 2222:<Next Box IP>:<Open Port> (can add additional -L’s with different ports in one line)
 LinOps>ssh -MS /tmp/nexthop <user>@127.0.0.1 -p 2222
 LinOps>ssh -S /tmp/nexthop dummy -O forward -D 9050
+
+SSH SOCKETS
+Master Socket
+Create Master Socket to Jump / Gray Host
+ssh -MS /tmp/gray student@10.50.#.#
+Cancel Master Socket to Jump / Gray Host
+ssh -MS /tmp/gray -O cancel student@10.50.#.#
+Port Forward
+Create Port forward through Master Socket to Next Hop/host
+ssh -S /tmp/gray dummy -O forward -L 1330:192.168.28.#:80
+Cancel Port forward through Master Socket to Next Hop/host
+ssh -S /tmp/gray dummy -O cancel -L 1330:192.168.28.#:80 
+Dynamic Forwarding
+Create Port forward through Master Socket to Next Hop/host
+ssh -S /tmp/gray dummy -O forward -D9050
+Cancel Dynamic Tunnell
+ssh -S /tmp/gray dummy -O cancel -D9050 (Cancel Dynamic tunnel)
+Another Master Socket to the Next Hop
+(setup a tunnel to ssh to desire nxt hop)
+ssh -S /tmp/gray dummy -O forward -L 1331:192.168.28.#:22
+(Setup Master Socket to go through previously established tunnel)
+ssh -MS /tmp/nxthop user@0.0.0.0 -p 1331    
+(Scan through your new Master Socket, (New Dynamic Tunnel) to identify what you couldn't see before...)
+ssh -S /tmp/nxthop hop -O forward -D9050  
+go after new hosts / ports, through the new Master Socket
+ssh -S /tmp/nxthop hop -O forward -L 1440:10.10.10.50:80   (go after new hosts / ports)
 
 Recon CTFd
 not all of 192.168.28.96/27 can communicate with 192.168.150.224/27
@@ -71,7 +97,7 @@ Jump>for i in {97..126} ;do (ping -c 1 192.168.28.$i | grep "bytes from" &) ;don
 64 bytes from 192.168.28.105: icmp_seq=1 ttl=63 time=4.03 ms
 64 bytes from 192.168.28.99: icmp_seq=1 ttl=63 time=9.63 ms
 64 bytes from 192.168.28.111: icmp_seq=1 ttl=63 time=2.11 ms
-64 bytes from 192.168.28.120: icmp_seq=1 ttl=63 time=2.41 ms
+64 bytes from 192.168.28.120: icmp_seq=1 ttl=63 time=2.41 ms (4242-SSH)
 LOPs>ssh -MS /tmp/jump 10.50.26.30
 LOPs>ssh -S /tmp/jump dummy -O forward -D 9050
 LOPs>proxychains nmap -Pn 192.168.28.97,98,99,100,105,111,120 -T4 --min-rate 10000
@@ -93,3 +119,48 @@ Contact Info { page = requests.get('http://127.0.0.1:3333/sites/NSC-Contacts.htm
 tree = lxml.html.fromstring(page.content)
 authors = tree.xpath('//td[@class="f1aG"]/text()') }
 proxychains ssh 192.168.28.120 -p 4242 password:YourTempPassword
+
+LOPs>ssh -MS /tmp/gray 10.50.26.30
+LOPs>ssh -S /tmp/gray dummy -O forward -L 5555:192.168.28.120:4242
+LOPs>ssh -MS /tmp/tgt student@127.0.0.1 -p 5555
+Donovia-04>for i in {225..254} ;do (ping -c 1 192.168.150.$i | grep "bytes from" &) ;done 2>/dev/null
+64 bytes from 192.168.150.225: icmp_seq=1 ttl=64 time=4.81 ms
+64 bytes from 192.168.150.226: icmp_seq=1 ttl=63 time=1.92 ms
+64 bytes from 192.168.150.227: icmp_seq=1 ttl=63 time=3.63 ms
+64 bytes from 192.168.150.245: icmp_seq=1 ttl=127 time=2.10 ms
+64 bytes from 192.168.150.253: icmp_seq=1 ttl=63 time=1.70 ms
+LOPs>ssh -S /tmp/jump dummy -O cancel -D9050
+LOPs>ssh -S /tmp/tgt hop -O forward -D 9050
+LOPs>proxychains nmap -Pn 192.168.150.225,226,227,245,253 -T4 --min-rate 10000
+All 1000 scanned ports on 192.168.150.225 are closed
+
+Nmap scan report for 192.168.150.226
+Host is up (0.0036s latency).
+Not shown: 999 closed ports
+PORT   STATE SERVICE
+53/tcp open  domain
+
+Nmap scan report for 192.168.150.227
+Host is up (0.0045s latency).
+Not shown: 999 closed ports
+PORT   STATE SERVICE
+53/tcp open  domain
+
+Nmap scan report for 192.168.150.245
+Host is up (0.0040s latency).
+Not shown: 995 closed ports
+PORT     STATE SERVICE
+135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+445/tcp  open  microsoft-ds
+3389/tcp open  ms-wbt-server
+9999/tcp open  abyss
+
+Nmap scan report for 192.168.150.253
+Host is up (0.0040s latency).
+Not shown: 998 closed ports
+PORT    STATE SERVICE
+80/tcp  open  http
+514/tcp open  shell
+
+LOPs>proxychains nmap --script=smb-os-discovery.nse 192.168.150.245 -p 445
