@@ -1,0 +1,95 @@
+https://sec.cybbh.io/public/security/latest/index.html
+
+Day 1
+CTFd: 10.50.20.250:8000
+ALBO-507-M::LATl0QU2IAkI1Nd
+Grey space JumpBox: 10.50.26.30
+Darknetdiaries-podcast
+operation glowing symphony
+
+Scanning and Recon
+=========================================================================
+OSINT-social media, google
+Document everything you do and find
+Data to collect:
+Web data, sensitive data, publicly accessible, social media, domain and IP data
+
+Scraping
+Python Webscraping script:
+#!/usr/bin/python3
+
+# IDENTFYING SPECIFIC PYTHON MODULES THAT WILL BE USED IN SCRIPT
+import lxml.html
+import requests
+# THIS OUTLINES THE WEBSITE AND DEFINES THE CONTENT ON THE PAGE TO BE TARGETED
+  page = requests.get('http://quotes.toscrape.com')
+  tree = lxml.html.fromstring(page.content)
+
+# THIS OUTLINES THE HTML TAG AND ATTRIBUTE TO BE TARGETED FOR THE DATA YOU WANT TO toscrape
+# "small" IS THE HTML TAG AND "class" IS THE HTML TAG ATTRIBUTE
+  authors = tree.xpath('//small[@class="author"]/text()')
+
+# PRINTS THE ABOVE VARIABLE WITH Authors: AS THE HEADER
+  print ('Authors: ',authors)
+Scanning Techniques
+1.Host Discovery-find hosts that are online
+for i in {1..254} ;do (ping -c 1 192.168.1.$i | grep "bytes from" &) ;done 2>/dev/null
+2.Port Enumeration-find ports for each host that is online
+nmap -sS -Pn <IP or network> -p 135-139,22,80,443,21,8080
+nc -z -v w 1 <IP> 440-443
+3.Port Interrogation-find what service is running on each open port; trust but verify
+nmap -sV <IP> -p <open ports>
+Web servers: nikto -h <IP> -p <open port>
+
+NMAP Scripting
+/usr/share/nmap/scripts
+--script=banner=nse,--script=http-enum.nse1
+nmap –script=http-enum.nse <IP> -p<port 80 open>
+
+Master Sockets
+LinOps>ssh -MS /tmp/gray <user>@<IP>
+LinOps>ls /tmp/gray
+LinOps>ssh -MS /tmp/gray -O cancel <user>@<IP> (used to tear down)
+LinOps>ssh -S /tmp/gray dummy -O forward -L 2222:<IP>:<Target Port>
+LinOps>ssh <user>@127.0.0.1 -p 2222
+LinOps>ssh -S /tmp/gray dummy -O forward -D 9050
+LinOps>ssh -S /tmp/gray dummy -O forward -L 2222:<Next Box IP>:<Open Port> (can add additional -L’s with different ports in one line)
+LinOps>ssh -MS /tmp/nexthop <user>@127.0.0.1 -p 2222
+LinOps>ssh -S /tmp/nexthop dummy -O forward -D 9050
+
+Recon CTFd
+not all of 192.168.28.96/27 can communicate with 192.168.150.224/27
+SoM:
+Jump Box→Network scan:192.168.28.96/27→Network scan:192.168.150.224/27
+Known URL:consulting.site.donovia;conference.site.donovia;Creds:student
+
+LOPs>ssh 10.50.26.30
+Jump>for i in {97..126} ;do (ping -c 1 192.168.28.$i | grep "bytes from" &) ;done 2>/dev/null
+64 bytes from 192.168.28.100: icmp_seq=1 ttl=63 time=4.63 ms
+64 bytes from 192.168.28.97: icmp_seq=1 ttl=64 time=7.05 ms
+64 bytes from 192.168.28.98: icmp_seq=1 ttl=63 time=7.16 ms
+64 bytes from 192.168.28.105: icmp_seq=1 ttl=63 time=4.03 ms
+64 bytes from 192.168.28.99: icmp_seq=1 ttl=63 time=9.63 ms
+64 bytes from 192.168.28.111: icmp_seq=1 ttl=63 time=2.11 ms
+64 bytes from 192.168.28.120: icmp_seq=1 ttl=63 time=2.41 ms
+LOPs>ssh -MS /tmp/jump 10.50.26.30
+LOPs>ssh -S /tmp/jump dummy -O forward -D 9050
+LOPs>proxychains nmap -Pn 192.168.28.97,98,99,100,105,111,120 -T4 --min-rate 10000
+LOPs>proxychains nc <Ips> <ports>
+LOPs>proxychains wget -r ftp://192.168.28.105
+LOPs>cat 192.168.28.105/Y7dwOKqLR21Fzd6KcbSF
+LOPs>ssh -S /tmp/jump dummy -O forward -L 3333:192.168.28.111:80
+LOPs>firefox &
+Firefox>127.0.0.1:3333
+LOPs>ssh -S /tmp/jump dummy -O forward -L 3334:192.168.28.111:8080
+Firefox>127.0.0.1:3334
+Key Speaker { page = requests.get('http://127.0.0.1:3335')
+tree = lxml.html.fromstring(page.content)
+authors = tree.xpath('//h2[@class="text-white mb-4 name"]/text()') }
+Comp Article { page = requests.get('http://127.0.0.1:3333/sites/index.html')
+tree = lxml.html.fromstring(page.content)
+authors = tree.xpath('//dd[@class="org-title"]/text()') }
+Contact Info { page = requests.get('http://127.0.0.1:3333/sites/NSC-Contacts.html')
+tree = lxml.html.fromstring(page.content)
+authors = tree.xpath('//td[@class="f1aG"]/text()') }
+proxychains ssh 192.168.28.120 -p 4242 password:YourTempPassword
