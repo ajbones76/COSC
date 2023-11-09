@@ -164,3 +164,11 @@ PORT    STATE SERVICE
 514/tcp open  shell
 
 LOPs>proxychains nmap --script=smb-os-discovery.nse 192.168.150.245 -p 445
+
+Web Exploit
+===================================================================================================================================================================================================================
+LOPs>ssh -S /tmp/tgt hop -O cancel -D9050
+LOPs>ssh -S /tmp/web web -O forward -L 8989:10.100.28.28:80
+LOPs>proxychains nmap -Pn -T4 --min-rate 10000 10.100.28.40
+LOPs>proxychains nc 10.100.28.40 4444 - SSH
+LOPs>ssh -S
