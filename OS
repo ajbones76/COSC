@@ -1,0 +1,837 @@
+PowerShell
+https://os.cybbh.io/public/os/latest/index.html -       Student Guide
+https://vta.cybbh.space/horizon/auth/login/             -       Vms
+xfreerdp /u:student /v:10.50.30.94 -dynamic-resolution +glyph-cache +clipboard      -   Windows
+14 – stack number Admin station IP: 10.50.41.19 – andy.dwyer
+Range map – replace XX with stack number
+http://10.50.24.129:8000/       -      CTFd Activities
+CIM Classes     -    classes are general term, for grouping of similar objects
+Think of Common Information Model (CIM) classes as objects designed to control a specific windows subsystem like the Hard drive, or BIOS. CIM Classes are the parent classes upon which WMI (Windows Management Instrumentation) classes are built. While there are CIM classes of all sorts there may only be a few CIM instances actually being used
+
+Get-ExecutionPolicy -list           # Lists all of the Scopes and ExecutionPolicies on the system
+Get-ExecutionPolicy                 # Gets the current user's ExecutionPolicy
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser  # Sets the ExecutionPolicy for the CurrentUser to Unrestricted
+PowerShell Profiles – persistence, every time PowerShell opens it looks through and executes everything in profiles
+$profile
+PowerShell supports several profile files and host programs, like Windows, support their own specific profiles. The profiles below are listed in order of precedence with the first profile having the highest precedence.
+All Users, All Hosts
+$PsHome\Profile.ps1
+All Users, Current Host
+$PsHome\Microsoft.PowerShell_profile.ps1
+Current User, All Hosts
+$Home\[My]Documents\Profile.ps1
+Current User, Current Host
+$Home\[My ]Documents\WindowsPowerShell\Profile.ps1
+
+PowerShell ISE
+
+All users, Current Host
+$PsHome\Microsoft.PowerShellISE_profile.ps1
+Current user, Current Host
+$Home\[My]Documents\WindowsPowerShell\Microsoft.PowerShellISE_profile.ps1
+
+WinRM uses Kerberos for authentication by default
+Although, New-PSSession, Enter-PSSession, and Invoke-Command accepts an IP address as a value, Kerberos does not and NTLM authentication will be used
+
+#Download a file with powershell
+$url = "http://downloads.volatilityfoundation.org/releases/2.6/volatility_2.6_win64_standalone.zip"
+$output = "$PSScriptRoot\volatility_2.6_win64_standalone.zip"
+$start_time = Get-Date
+$wc = New-Object System.Net.WebClient #create new webclient objct
+$wc.DownloadFile($url, $output)
+(New-Object System.Net.WebClient).DownloadFile($url, $output)
+
+get-process | get-member
+(Get-Process).Name
+Get-Process | Select-Object Name,Id,Path
+(Get-Process calculator*).kill()
+Stop-Process -Name calculator*
+Get-Process | Get-Member | Where-Object {$_.membertype -match "method"}
+Get-Process | Select-Object name,Id,Path | Where-Object {$_.Id -lt '1000'}
+(Get-Process | Select-Object name,Id,Path | Where-Object {$_.Id -lt '1000'}).count
+Get-CimInstance -ClassName win32_logicaldisk
+Get-CimInstance -ClassName win32_logicaldisk -filter "drivetype=3"
+Get-CimInstance -ClassName win32_bios
+Get-WmiObject -Class win32_bios
+
+Get-ExecutionPolicy
+Get-ExecutionPolicy -List
+get-help Set-ExecutionPolicy
+Set-ExecutionPolicy -ExecutionPolicy <what your setting it as> -scope <where its applying>
+
+$profile
+Test-Path -Path $profile.CurrentUserAllHosts
+New-Item -ItemType file -Path $profile -Force
+
+#Remoting
+Get-Item WSMan:\localhost\Client\TrustedHosts
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "file-server"
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "domain-controller" -Concatenate
+Invoke-Command -ComputerName file-server {Get-Service} #-asjob to run in background
+Receive-Job <job number>
+$sess = New-PSSession -ComputerName file-server -Credential andy.dwyer
+Enter-PSSession $sess
+
+#Download a file with powershell
+$url = "http://downloads.volatilityfoundation.org/releases/2.6/volatility_2.6_win64_standalone.zip"
+$output = "$PSScriptRoot\volatility_2.6_win64_standalone.zip"
+$start_time = Get-Date
+$wc = New-Object System.Net.WebClient #create new webclient objct
+$wc.DownloadFile($url, $output)
+(New-Object System.Net.WebClient).DownloadFile($url, $output)
+Day 2
+https://os.cybbh.io/public/os/latest/004_windows_registry/reg_fg.html   -     Windows Registry
+https://os.cybbh.io/public/os/latest/005_windows_ads/ads_fg.html                -     Alternate Data Streams
+
+Windows Persistence
+-Run Keys
+-Services
+-Scheduled Tasks
+
+Registry is mainly for bootup process, similar to a file system, like a rolodex, constantly referenced and used
+Important for persistence – registry keys and people dont look at registry easy to hide
+Programs cannot start themselves
+
+Registry Hives/keys contain subkeys and values
+Subkeys-contain subkeys amd values
+Values-contain data in specific formats
+Registry Hives or Root Keys:
+HKEY_LOCAL_MACHINE
+Hardware - contains a database of installed devices along with their drivers
+SAM - Security Account Manager stores user and group accounts along with NTLM hashes of passwords
+Security - Local Security policy accessed by lsass.exe used to determine rights and permissions for users on the machine
+System - Contains keys pertaining to system startup such as programs started on boot or driver load order
+HKEY_USERS
+Contains all all user profiles on the system. Contains one key per user on the system. Each key is named after the SID(Security Identifier) of the user
+HKEY_CURRENT_USERS
+copy of the logged in user’s registry key based on thier SID from HKEY_USERS
+HKEY_CURRENT_CONFIG
+symbolic link (pointer or shortcut or alias) to the following registry key : HKEY_LOCAL_MACHINE\System\CurrentControlSet\Hardware Profiles\Current
+HKEY_CLASSES_ROOT
+symbolic link (pointer or shortcut or alias) to the following registry key : HKEY_LOCAL_MACHINE\Software\Classes
+
+
+HKLM\SAM
+SAM, SAM.LOG
+HKLM\SECURITY
+SECURITY, SECURITY.LOG
+HKLM\SOFTWARE
+software, software.LOG, software.sav
+HKLM\SYSTEM
+system, system.LOG, system.sav
+HKLM\HARDWARE
+(Dynamic/Volatile Hive)
+HKU\.DEFAULT
+default, default.LOG, default.sav
+HKU\SID
+NTUSER.DAT
+HKU\SID_CLASSES
+UsrClass.dat, UsrClass.dat.LOG
+
+
+View and manipulate registry with GUI – regedit.exe
+Registry Manipulation with PowerShell
+Query
+Get-ChildItem cmdlet gets the items in one or more specified locations.
+Get-ItemProperty cmdlet gets the items in one or more specified locations.
+Get-Item cmdlet gets the item at the specified location. It doesn’t get the contents of the item at the location unless you use a wildcard character (*) to request all the contents of the item.
+Modify
+Set-ItemProperty cmdlet changes the value of the property of the specified item. example, changing setting to :true or :false.
+Remove-ItemProperty cmdlet to delete registry values and the data that they store.
+Create
+New-Item cmdlet creates a new item and sets its value. In the registry, New-Item creates registry keys and entries.
+New-Itemproperty cmdlet creates a new property for a specified item and sets its value. Typically, this cmdlet is used to create new registry values, because registry values are properties of a registry key item.
+Create network share to Sysinternals
+net use * http://live.sysinternals.com
+
+Windows PowerShell drive is a data store location that you can access like a file system drive in Windows PowerShell – cannot be accessed by other tools like File explorer or cmd
+a PSDrive creates a temporary or permanent way for PowerShell to navigate the registry just like you could navigate the file system.
+Find current PSDrives – get-psdrive
+gci env: - make sure to put colon at end
+
+New-PSDrive -Name Demo -PSProvider FileSystem -Root c:\Demo
+cd Demo:
+New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS
+cd HKU:         -       change to psdrive
+C:              -       chang back to c:\ drive
+New-PSDrive -Name FileServer -PSProvider FileSystem -Root “\\file-server\warrior”
+
+Alternate Data Streams(ADS)
+[filename.extension]:[alternate_stream_name]:$DATA
+In NTFS – files consists of attributes, security settings, mainstreams and alternate streams. By default, only the mainstream is visible.
+ADS has been used to store metadata, like file attributes, icons, image thumbnails.
+Great way to hide data using NTFS.
+Can be scanned by antivirus (Windows Defender Smartscreen is ADS aware).
+Does not change the MD5 hash of the file.
+Deleted once copied to a fat32.
+Cannot be disabled.
+Ssh -J student@10.50.xx.xx andy.dwyer@ip of dst
+
+Get-ChildItem HKLM:\software\Microsoft\Windows\CurrentVersion
+Get-Item HKLM:\software\Microsoft\Windows\CurrentVersion\Run
+New-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\GoodIntentions"
+New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\GoodIntentions" -Name "%USERPROFILE%Downloads/test-document.doc" -PropertyType Binary -Value ([byte[]](0x30,0x31,0xFF))
+New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name Test -PropertyType String -Value C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+
+Set-MpPreference -disablerealtimemonitoring $true
+new-item "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe"
+New-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" -name Debugger -Type String -Value C:\Windows\System32\cmd.exe
+
+Get-PSDrive
+Get-ChildItem env:
+New-PSDrive -Name Demo -PSProvider FileSystem -Root c:\Demo
+#ADS
+echo "always do your best" > reminder.txt    #regular data stream on a file
+gci .\reminder.txt
+Get-Content .\reminder.txt
+Set-Content .\reminder.txt -Value "social security numbers" -Stream secret.info     #Create Alternate Data Stream on a file
+Get-Item .\reminder.txt -Stream *   #view ADS on a file
+Get-Content .\reminder -Stream secret.info    #gets ADS content
+Get-Item reminder.txt -Stream * | select FileName,Stream     #Line 19 but filtered
+
+gci -r <path> -filter “String” 2>$null
+
+Day 3
+
+Linux Essentials - https://os.cybbh.io/public/os/latest/003_linux_essentials/bash_fg.html
+
+Situational Awareness Commands
+uname -a
+whoami, who, w
+ifconfig
+arp        -    MAC addresses of devices on network
+ip route   -    shows where packets will be routed
+netstat   -    shows network connections or listening ports
+iptables -L    -   view firewall rules
+sudo -l    -     displays commands that the user can run with elevated permissions
+
+stdin  -  0
+stdout  -  1
+stderr  -   2
+
+Permissions: rwx
+U – User/Owner
+G – Owning Group
+O – Others
+Perm
+Relative
+Octal
+On a File
+On a Directory
+read
+r
+4
+Read the contents of the file
+List the contents of the directory
+write
+w
+2
+Write content into a file
+Create/delete in the directory
+exe
+x
+1
+Run the file as an executable
+Move into the directory
+
+sticky bit removes the ability to delete files unless the user attempting is the owner of the file
+If a user has write access to a directory, they can delete any file from it
+
+awk allows you to reformat or select sections of text based on delimiters on the fly
+Sed is yet another string manipulation tool, but it edits text instead of filtering or formatting it like the other two. Sed is special because it edits text as it is sent to standard output
+
+find /dir/to/search/ -type f -iname ".*" -ls        -      find hidden fileserver
+
+Day 4
+https://os.cybbh.io/public/os/latest/006_windows_boot_process/winboot_fg.html
+
+bcdedit | findstr /i  winload
+Turn on PC:
+1. POST
+2. BIOS/UEFI newer version of BIOS, allows for use of mouse, faster, secure boot
+User Subsystem - Session 0 is for security and high privilege processes such as services. They are run in a separate session to isolate them from individual user’s processes
+Session 1 is for the first interactive user (note: each session gets its own copy of csrss.exe.) Session 1 and up are standard user sessions. This includes everyone from the default Administrator to custom accounts created. It is the entire desktop experience on Windows
+
+use command prompt
+bcdedit /?              - help
+bcdedit export C:\bcdbackup     -export/backup in case you break something
+bcdedit         -info in bcdedit
+bcdedit /set {<identifier>} description "Windows 7 - Lion Den" (1)      -change description
+bcdedit /create {ntldr} /d "Windows 11”         -create new partition
+bcdedit /set {ntldr} device partition=C:                -specify partition
+bcdedit /set {ntldr} path \ntldr                        -specify path
+bcdedit /displayorder {ntldr} /addfirst         -specify display order
+bcdedit                                         -display the new partition
+bcdedit /set {ntldr} safeboot                   -set safeboot
+bcdedit /deletevalue {current} safeboot         -delete safeboot value
+bcdedit /set {bootmgr} timeout 29                       -change timeout value
+bcdedit /delete {ntldr} /f                              -delete partition
+msconfig.exe
+Day 5
+https://os.cybbh.io/public/os/latest/007_linux_boot_process/linboot_fg.html
+
+
+1. BIOS or UEFI
+2. 1st stage bootloaders MBR(BIOS) and GPT(UEFI)
+        MBR
+        first 512 bytes of a hard drive contains the Master Boot Record contains:
+                Bootstrap Code
+                        initial section of code that contains a bootloader known as GRUB broken
+into two stages. The first stage is GRUB stage 1, which loads Grub                              Stage 2 from the selected active partition. Grub Stage 2 is not located in                      the MBR, but further in the hard drive.
+       Partition entry 1
+       Partition entry 2
+       Partition entry 3
+       Partition entry 4
+       Boot signature
+        GPT
+        GPT supports 128(and more depending on Operating System) separate physical      partitions, while MBR supports only 4
+2. 2nd stage bootloader-GRUB
+        MBR in Grub Stage 1 loads the 2nd stage bootloader, named Grub Stage 2 or GRUB.         GRUB Stage 2 rests inside the selected active partition mounted in /boot or in a        completely separate partition
+GRUB(Grand Unified Bootloader) has one purpose - to load the Linux Kernel a user choses from a location in the hard drive. The GRUB has two stages which load it from two separate locations
+On BIOS Systems using MBR
+    1. Stage 1 : boot.img located in the first 440 bytes of the MBR loads../
+    2. Stage 1.5 : core.img located in the MBR between the bootstrap and first partition. It loads…
+    3. Stage 2 : /boot/grub/i386-pc/normal.mod which loads the grub menu and then reads
+        a. /boot/grub/grub.cfg Which displays a list of Linux kernels available to load on the system
+On UEFI Systems using GPT
+    1. Stage 1 : grubx64.efi Located on an EFI partition or in /boot loads...
+    2. Stage 2 : /boot/grub/x86_64-efi/normal.mod
+        a. /boot/grub/grub.cfg Which displays a list of Linux kernels available to load on the system
+Kernel is heart of OS
+Linux kernel is monolithic kernel
+        System calls all functionality to the user such as CPU scheduling, memory       management, and file management. A systemcall is a way in which a program       requests services from the kernel. Everything that occurs on the system occurs  through a systemcall
+The kernel, once loaded, is hard coded to reach out and execute /sbin/init. This starts the process of bringing the system to a desired level of functionality using Initialization Daemons. There are two main initialization daemons now : Systemd and SysV.
+Run Level defines the state of a machine after it has completed booting and is prompting for a user login
+Run Level
+Meaning
+Description
+0
+Halt
+Shutdown the system
+1
+Single User
+Allow a single user to login session with No network functionality. Used to troubleshoot.
+2
+Multi-user mode
+Allow multiple user to login sessions with No network functionality.
+3
+Multi-user mode with networking
+Allow multiple user to login sessions with complete networking functionality
+4
+Not used/user-definable
+Nothing, cab be set to anything
+5
+Multi-user mode with networking and GUI Desktop
+Allow multiple user to login sessions with complete networking functionality and a graphical desktop instead of a Bash terminal
+6
+Reboot
+Restart the system
+
+SysV initialization starts with the kernel executing the first process on the machine, or the Initialization daemon. In SysV machines it is the /etc/init program. Then, init reads /etc/inittab to start creating processes in groups called Run Levels. The processes that each Run Level starts are defined in /etc/rc.d/rc*.d
+The program /etc/init is the first process to start in SysV Linux machines. The kernel spawns /sbin/init. Its role is to initialize the system to a target run level specified in /etc/inittab.
+The file /etc/inittab is a text file that contains Run Level entries as variables read by /etc/init. Entries numbered 0-6 specify a directory with scripts to start at the specified Run Level. By default the system will try to start the initdefault run level. If that fails to start, the machine will display an error, then execute the scripts in the 0(halt) run level
+Run Levels in SysV are a series of scripts that start or kill background processes on Linux at specific run levels. The scripts have a specific naming scheme that determine how the init process interacts with them.
+    1. The first letter K or S means Kill or Start the process that that script handles
+    2. The two digit number that follows K or S dictates the order the scripts execute
+Another name for background processes (or services) in Linux is a daemon. Daemons run in the background and maintain user mode functionality such as DHCP or enabling SSH.
+Systemd is the modern initialization method. Its starts with the kernel spawning /sbin/init which is symbolically linked to /usr/lib/systemd/system. systemd interacts with flat configuration files called units. There are many types, but the target and service units determine system initialization
+The kernel spawns /usr/lib/systemd/system as the first process on the system. It then executes configurations starting at mounting the local file system to bringing the system to a desired state specified in the default target unit. Targets in systemd are like runlevels in SysV. The name of the default target is default.target and located in /lib/systemd/system
+
+
+Run Level
+Meaning
+Systemd Target
+0
+Halt
+poweroff.target
+1
+Single User
+rescue.target
+2
+Multi-user mode
+multi-user.target
+3
+Multi-user mode with networking
+multi-user.target
+4
+Not used/user-definable
+multi-user.target
+5
+Multi-user mode with networking and GUI Desktop
+graphical.target
+6
+Reboot
+reboot.target
+
+Systemd target units are a set of value=data pairs to create processes in a set order on the system. But, they are simple to understand at a functional level by understanding the value=data fields within each
+Target.unit want and requires dependencies search locations
+    1. /etc/systemd/system/*
+    2. /lib/systemd/system/*
+    3. /run/systemd/generator/*
+Service units create processes when called by target units. They, much like target units, have value=data pairs that determine what the unit does
+Systemd is a complex initialization method with interweaving dependencies, hundreds' of files across the system, and unique file types. It is possible to query each file and use the find command to locate dependencies, but there is a much easier way. The systemctl command comes with every systemd machine to query and manage details relating to its dependencies.
+By default, systemctl shows every unit file currently visible by systemd
+/etc/environment file sets Global Variables
+/etc/profile is a script that executes whenever a user logs into an interactive shell on Linux. its functionality depends entirely on the version of Linux being used. Ubuntu Linux uses it to set the BASH shell prompt by executing /etc/bash.bashrc and execute any script named *.sh in /etc/profile.d.
+Unlike /etc/environment it executes every time a user logs in interactively; therefore, when the file is modified logging out then in again will apply the changes
+Unique to BASH(Bourne Again Shell) are .bash_profile and .bashrc. They execute on a per user basis for interactive logins only. Both files are located every user’s /home directory. They are user specific configurations and freely editable by the owning user or root.
+.bash_profile is a bash script that executes when a user invokes an interactive login shell on the system. Interactive login shells only occur when prompted for a password while logging in like when using ssh or telnet to access a system. .bash_profile is also called .profile on many systems as well.
+.bashrc on the other hand, executes when interactive non-login shell is invoked. Non-Login interactive shells occur when not prompted for credentials
+If in user directory it is user; if in system directory it is system
+
+sudo dmidecode -t bios
+lsblk           -view boot devices
+sudo xxd -l 512 -g 1 /dev/vda
+sudo dd if=/dev/vda of=MBRcopy bs=512 count=1
+cat /boot/grub/grub.cfg         -look at grub config in Linux to find Kernel
+ltrace -S cat /etc/passwd               -show system calls in Linux
+ltrace -S lsmod                 -show modules in Linux
+cat /etc/inittab                        -shows run levels om SysV
+ls -l /etc/rc#.d                        -show contents of rc# directory
+ls -lisa /lib/systemd/system/default.target             -show default target unit
+cat /lib/systemd/system/default.target | tail -n 8              -examine contents of graphical.target
+ll /etc/sysystemd/system | grep graphical               -show more wants and requires to
+                                 graphical.target
+ll /etc/systemd/system/graphical.target.wants/
+ll /lib/systemd/system | grep graphical.target
+ll /lib/systemd/system/graphical.target.wants/
+systemctl list-dependencies graphical.target
+systemctl -p <Required/Wants> graphical.target
+cat /etc/systemd/system/display-manager.service | tail -n 13            -contents of display-
+                                                 manager.service
+systemctl list-unit-files                                       -list individual unit files
+systemctl cat graphical.target                          -contents of a unit file
+ls -al                                                          -show all hidden stuff
+
+Day 6
+Process validity – distinguish a process as a known good from a possible bad
+View only modules/DLLs used by Chrome with "chrome" in the name and their file locations:
+Get-Process chrome | foreach {$a} {$_.modules} | Where-Object ModuleName -like '*chrome*' | more
+Get-Process -Name "*chrome*" | Select-Object -ExpandProperty Modules | Where-Object ModuleName -like '*chrome*' | more
+View information on services:
+In Powershell:
+Get-Ciminstance
+Get-Service
+In Command Prompt:
+net start - Shows currently running services
+sc query
+Get-ScheduledTask | Select * | select -First 1  -All properties of
+                         1st scheduled task
+Registry keys that can be used for autoruns?
+    • Registry Keys Locations, Locations connected with Services.
+        ◦ HKLM\Software\Microsoft\Windows\CurrentVersion\Run -
+        ◦ HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce
+        ◦ HKLM\System\CurrentControlSet\Services
+    • Remember that the Users have individual Hives with autoruns as well as the Current User.
+        ◦ HKCU\Software\Microsoft\Windows\CurrentVersion\Run -
+        ◦ HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce
+        ◦ HKU\<sid>\Software\Microsoft\Windows\CurrentVersion\Run -
+        ◦ HKU\<sid>\Software\Microsoft\Windows\CurrentVersion\RunOnce
+    • The order in which services are loaded can be adjusted.
+        ◦ HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ServiceGroupOrder
+        ◦ HKEY_LOCAL_MACHINE\CurrentControlSet\Control\GroupOrderList
+Get-NetTCPConnection -State Established
+netstat -anob | more
+UAC
+Multiple color-coded consent prompts
+Red - Application or publisher blocked by group policy
+Blue & gold - Administrative application
+Blue - Trusted and Authenticode signed application
+Yellow - Unsigned or signed but not trusted application
+
+files with auto elevate in their permissions will not prompt UAC
+
+net use
+net use * http://live.sysinternals.com
+New-PSDrive -Name "SysInt" -PSProvider FileSystem -Root "\\live.sysinternals.com\Tools"
+$wc = new-object System.Net.WebClient
+$wc.DownloadFile("https://download.sysinternals.com/files/SysinternalsSuite.zip","$pwd\SysinternalsSuite.zip")
+Expand-Archive SysinternalsSuite.zip
+procmon
+.\<tool.exe> -m <path> -accepteula
+Day 7
+Kernel/system processes are from kthreadd – PID 2
+user processes are from /sbin/init – PID 1
+Virtual memory-kernel space and user space
+kernel space-where kernel processes will run; can only be accessed by user processes through system calls
+user space-restricts access to a small subset of memory; protects system from things crashing, won’t bring down entire system
+
+
+
+
+
+
+
+Effective user ID (EUID) defines the access rights for a process. In layman’s term it describes the user whose file access permissions are used by the process
+Real user ID (RUID) is who you really are (the one who owns the process). It also defines the user that can interact with the running process—most significantly, which user can kill and send signals to a process
+
+
+Two system calls, fork and exec, are important to understanding how processes startup:
+fork - creates a new process by duplicating the calling process. The new process is referred to as the child process. The calling process is referred to as the parent process.
+        The fork “processes” can be explained as the recreation of a process from system space and      duplicated into user space in an attempt restrict user access to system processes/space.
+exec - When a process calls exec, the kernel starts program, replacing the current process.
+Processes that require a user to start them or to interact with them are called foreground processes.
+Processes that are run independently of a user are referred to as background processes.
+Programs and commands run as foreground processes by default
+Orphan process is a running process whose parent process has finished or terminated and is adopted by sbin/init and will have a PPID of 1
+Zombie process (or defunct process) is a process that has completed execution but hasn’t been reaped by its parent process. As result it holds a process entry in the form of a PID in the process table. Zombies cannot be killed as they are already dead and do not use resources. However, they do take up PIDs in the process table which is a finite resource. Zombie entries can be removed from the process table by killing its parent process
+A daemon process is an intentionally orphaned process in order to have a background process
+Daemon and how they are created:
+Program that runs as a background process (Ex. syslogd, sshd, cron)
+All daemons are Orphans, but all orphans are not Daemons
+A daemons purpose is to manage/monitor a service: {status, start, restart}
+man cron - to see an example of a daemon that starts during the boot process
+Persistence - Daemons are services that should run for duration of system operation, since init is parent, would require shutdown for parent to die
+Malicious processes are sometimes orphaned and named to make it look like a daemon process ps --ppid 1 -lf
+
+A system that uses the SysV scheme usually comes with the service program used to manage the services while the system is running. You can check on the status of a service, or all services, and start or stop a service, respectively, using the service utility
+
+The basic object that systemd manages and acts upon is a “unit”. Units can be of many types, but the most common type is a “service” (indicated by a unit file ending in .service). To manage services on a systemd enabled server, our main tool is the systemctl command
+
+Job control is the ability to stop/suspend the execution of processes (command) and continue/resume their execution as per your requirements.
+
+https://crontab.guru/
+Cron - Persistence
+The jobs command displays the status of jobs started in the current terminal window. Jobs are numbered starting from 1 for each session. The job ID numbers are used by some programs instead of PIDs
+The Unix cron service runs programs repeatedly on a fixed schedule. Most experienced administrators consider cron to be vital to the system because it can perform automatic system maintenance.
+The cron daemon checks the directories /var/spool/cron, /etc/cron.d and the file /etc/crontab, once a minute and executes any commands specified that match the time.
+Two types of cron jobs:
+System cron jobs:
+        Run as root and rigidly scheduled
+        Perform system-wide maintenance tasks (Cleaning out /tmp or rotating logs)
+        Controlled by /etc/crontab
+User cron jobs:
+        Use 'crontab’ command to create user cron jobs
+        Stored in /var/spool/cron/crontabs/
+The /proc/ directory — also called the proc file system — contains a hierarchy of special files which represent the current state of the kernel, allowing applications and users to peer into the kernel’s view of the system
+Every process access files in order to complete it’s work. These processes keep track of open files using File Descriptors
+file descriptor (FD, less frequently fildes) is a unique identifier (aka handle) for a file or other input/output resource, such as a pipe or network socket
+When you open a file, the operating system creates an entry to represent that file and store the information about that opened file
+entry number is the file descriptor. So it is just an integer number that uniquely represents an opened file in operating system. If your process opens 10 files then your Process table will have 10 entries for file descriptors
+
+ps -elf                                         -show linux processes
+ps --pid 1                                      -show processes with pid of 1
+ps --ppid 2                                     -show processes with ppid of 2
+ps --ppid 2 -Nlf                                -show processes with ppid of not 2
+ps -elf --forest                                -shows hierarchy tree
+top                                                     -realtime process listing
+htop
+ls -l /usr/bin/passwd                   -lists permissions of passwd
+         executables
+kill -l                                         -list signals
+disown -a && exit                               -Close a shell/terminal and force
+                 all children to be adopted
+kill -18                                                -will clear zombie process from
+                         process list
+service <servicename> status/start/stop/restart         -SysV
+systemctl list-units                    -systemd; lists all active service
+systemctl list-units --all              -show all units inactive & active
+systemctl status <servicename.service>          -check status
+systemctl status <PID of service>                       -check status
+systemctl start/stop/restart <servicename.service>
+jobs                                                    -show jobs
+kill -9 %<Job ID>                               -kill job
+cat /etc/crontab
+crontab -u [user] file                  -load the crontab data from the
+         specified file
+crontab -l -u [user]                    -will display/list user’s crontab contents
+crontab -r -u [user]                    -remove user’s crontab contents
+crontab -e -u [user]                    -edit user’s crontab contents
+MinuteHourDayofmonthMonthDayofweek
+ls -l /proc/                                    -list all proc directories
+sudo lsof | tail -30                    -view file descriptors
+sudo lsof -c sshd                               -list open files for specific
+         process
+# - The number in front of flag(s) is the file descriptor number used by the process associated with the file
+u - File open with Read and Write permission
+r - File open with Read permission
+w - File open with Write permission
+W - File open with Write permission and with Write Lock on entire file
+mem - Memory mapped file, usually for share library
+Day 8
+Artifacts are objects or areas within a computer system that contain important information relevant to the activities performed on the system by the user
+The UserAssist registry key tracks the GUI-based programs that were ran by a particular user
+located in HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\{GUID}\Count\
+The represents a particular file extension.
+    • CEBFF5CD-ACE2-4F4F-9178-9926F41749EA A list of applications, files, links, and other objects that have been accessed
+    • F4E57C4B-2036-45F0-A9AB-443BCFE33D9F Lists the Shortcut Links used to start programs
+Windows Background Activity Moderator (BAM) BAM is a Windows service that Controls activity of background applications.This service exists in Windows 10 only after Fall Creators update – version 1709.
+BAM Provides the following:
+    • full path of an executable
+    • last execution date/time.
+Location
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings #On 1809 and Newer
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bam\UserSettings #On 1803 and below
+When a user deletes a file in Windows it goes into the Recycle bin. This data is recoverable during an investigation using built in tools
+Content in the recycle bin is identified by:
+    • SID - determines which user deleted it
+    • Timestamp - When it was deleted
+    • $RXXXXXX - content of deleted files
+    • $IXXXXXX - original PATH and name
+Location
+C:\$Recycle.bin (Hidden System Folder)
+Operating System
+Version Details
+Version Number
+Windows 11
+Windows 11 (22H2)
+10.0.22621
+
+Windows 11 (21H2)
+10.0.22000
+Windows 10
+Windows 10 (22H2)
+10.0.19045
+
+Windows 10 (21H2)
+10.0.19044
+
+Windows 10 (21H1)
+10.0.19043
+
+Windows 10 (20H2)
+10.0.19042
+
+Windows 10 (2004)
+10.0.1904
+
+Windows 10 (1909)
+10.0.18363
+
+Windows 10 (1903)
+10.0.18362
+
+Windows 10 (1809)
+10.0.17763
+
+Windows 10 (1803)
+10.0.17134
+
+Windows 10 (1709)
+10.0.16299
+
+Windows 10 (1703)
+10.0.15063
+
+Windows 10 (1607)
+10.0.14393
+
+$I – original path and name of that file
+$R – file where deleted content was
+Prefetch files are created by the windows operating system when an application is run from a specific location for the first time
+files are named in a predetermined format and the prefetch name consists name of the application, hash noting the location from which the application was run, and a “.PF” file extension
+prefetch files are stored in “\Root\Windows\Prefetch” folder
+The Windows 7-10 taskbar (Jump List) is engineered to allow users to “jump” or access items they have frequently or recently used quickly and easily
+The data stored in the Automatic Destinations folder will each have a unique file prepended with the AppID of the associated application.
+    • First time of execution of application.
+    • Creation Time = First time item added to the AppID file.
+    • Last time of execution of application w/file open.
+    • Modification Time = Last time item added to the AppID file.
+Jumplists allow us to get visibility about the intent or knowledge an attacker had when opening a particular file, launching a particular application or browsing a specific directory during the course of an interactive session
+Location
+C:\%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations (C:\Users\king\AppData\Roaming\Microsoft\Windows\Recent)
+Show in Explorer:
+C:\%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations (C:\Users\king\AppData\Roaming\Microsoft\Windows\Recent)
+Registry Key that will track the last files and folders opened and is used to populate data in “Recent” menus of the Start menu.
+    • Tracks last 150 files or folders opened.
+    • Entry and modification time of this key will be the time and location the last file of a specific extension was opened
+Location
+HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
+Browser Artifacts - Stores details for each user account. Records number of times a site is visited (frequency). History will record the access to the file on the website that was accessed via a link. Many sites in history will list the files that were opened from remote sites and downloaded to the local system
+Location
+%USERPROFILE%\AppData\Local\Google\Chrome\User Data\Default\history
+C:\Users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\
+Areas of interest in Google Chrome History Files:
+1. URLS
+The urls table contains the basic browsing history for Chrome. This will include a single instance for all the URLs visited, a timestamp for the last time visited, and a counter for the number of times visited.
+2. Current Session/Tabs
+If you are examining a system that still has an active session available, Chrome will store the browsing activity here under current session and if there are multiple tabs open it will store it under current tabs.
+3. Top Sites
+Chrome shows the user their most frequently visited sites in panels on a homepage, which allows the user to quickly click on a frequently visited site. We recover the data around any URL that is listed as a “Top Site” in Chrome
+PowerShell Transcript is a feature that creates a record of all or part of a PowerShell session to a text file
+If you open cmd.exe and then run PowerShell from within that session the Transcript will log nothing since it’s not a normal PowerShell session
+Get-History
+Location
+C:\Users\<username>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
+
+
+
+get-localuser | select name,sid                            -shows local
+get-wmiobject win32_useraccount | select name,sid          -shows local & domain
+Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}\Count"
+Get-ItemProperty "Registry::Hkey_Users\*\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}\Count"    -look at all users Userassist artifacts
+Get-Computerinfo
+Get-ComputerInfo | select osname,osversion,OsHardwareAbstractionLayer
+Get-Item HKLM:\SYSTEM\CurrentControlSet\Services\bam\state\UserSettings\*               -BAM entries for every user on system
+wmic useraccount  get caption,sid | more        -user sids
+Get-Itemproperty 'HKLM:\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings\S-1-5-21-1584283910-3275287195-1754958050-1005'  -single user bam entries
+Get-Childitem 'C:\$RECYCLE.BIN' -Recurse -Verbose -Force | select FullName              -contents of recycle bin
+wmic useraccount where 'sid="S-1-5-21-1584283910-3275287195-1754958050-1005"' get name           -match sid to user
+Get-Content 'C:\$Recycle.Bin\S-1-5-21-1584283910-3275287195-1754958050-1005\$R8QZ1U8.txt'      -read contents
+Get-Childitem -Path 'C:\Windows\Prefetch' -ErrorAction Continue | select -First 8               -view prefetch files
+Get-Childitem -Recurse C:\Users\*\AppData\Roaming\Microsoft\Windows\Recent -ErrorAction Continue | select FullName, LastAccessTime
+Get-Childitem -Recurse $env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Recent -ErrorAction SilentlyContinue | select FullName,LastAccessTime
+OR
+Make sure sysinternals is mounted or unzipped
+Gci C:\users\student\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations | % {z:\strings.exe -accepteula $_} >> c:\recentdocs.txt
+Get-Item 'Registry::\HKEY_USERS\*\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.*'     -query hex value stored in key
+[System.Text.Encoding]::Unicode.GetString((gp "REGISTRY::HKEY_USERS\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.txt")."0") -change 0 to property
+Get-Item "REGISTRY::HKEY_USERS\*\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.txt" | select -Expand property | ForEach-Object {[System.Text.Encoding]::Default.GetString((Get-ItemProperty -Path "REGISTRY::HKEY_USERS\*\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.txt" -Name $_).$_)}
+.\strings.exe 'C:\users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\History' -accepteula           -Frequency
+strings.exe 'C:\users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\Top Sites'                              -most visited
+strings.exe  'C:\users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\Login Data'                            -user names
+$History = (Get-Content 'C:\users\student\AppData\Local\Google\Chrome\User Data\Default\History') -replace "[^a-zA-Z0-9\.\:\/]",""
+$History| Select-String -Pattern "(https|http):\/\/[a-zA-Z_0-9]+\.\w+[\.]?\w+" -AllMatches|foreach {$_.Matches.Groups[0].Value}| ft     -find FQDNs in SQL txt files
+Get-EventLog
+Get-EventLog -LogName System -Newest 3 | Format-Table -Wrap
+Get-Eventlog -LogName Security | ft -wrap
+Get-Eventlog -LogName Security | ft -wrap | findstr /i ‘<string>’
+Get-WineventDay 9
+logging is controlled by syslog or journald
+Syslog is a Standard System Logging Protocol
+Journald is unique to systemd distributions of Linux
+Both services store their logs in /var/log
+Syslog stores its logs as human-readable text documents within /var/log. It is configured using files in /etc/rsyslog/
+Severity statements in selectors are hierarchical. Syslog uses greater than or equal to and less than to select when determining what severies are logged - .crit would be anything critical and more severe
+Syslog log files are plain text documents they are easily filtered using simple command line tools like cat, vi , and grep
+Log Rotations limit the content in logs based off defined spans of time for ease of use and administration. If log rotation is not implemented, logs will grow infinitely. Since they are text files, it makes them very hard to read
+A daily cron job runs the logrotate binary controls log rotations. The cron job runs logrotate with the path to its configuration file /etc/logrotate.conf as an argument. /etc/logrotate.conf defines how often logs are rotated
+
+
+
+Syslog Types
+Authentication -
+Any logs having to do with logins and authentication attempts. . /var/log/auth.log - Authentication related events . /var/run/utmp - Users currently logged in .. Not in human readable format. Must use last command . /var/log/wtmp - History file for utmp .. Not in human readable format. Must use last command . */var/log/btmp - Failed login attempts
+Application -
+Any logs having to do with programs. . Apache - Webserver (dir) . apt - Package Manager (dir) . /var/log/mysql.log
+System -
+/var/log/messages - Legacy Catch all
+/var/log/syslog - Ubuntu/Debian Catch all
+dmesg = Device Messenger (queires /proc/kmsg)
+        Kernel Ring Buffer - Never fills
+        First logs generated by the system
+Logging Overview -
+Location: All logs are in /var, most are in /var/log
+Config File: /etc/rsyslog.conf
+Service: /usr/sbin/rsyslogd
+Journald or systemd-journald.service is the logging daemon for systemd systems
+Journald stores its logs in binary form
+journalctl is the open command that reads them
+journalctl in its base form shows all the logs currently saved by journald. Warning, journald is verbose so it saves a lot of logs
+In general, logs are presented in one the following formats: Simple Text Documents, Markup Languages, and JavaScript Object Notation (JSON)
+
+
+
+journalctl -e                           -shows last logs
+journalctl --list-boots         -show boot ids which separate logs                                              based on when the machine was restarted
+journalctl -b <boot id>         -show logs relating to that boot id
+journalctl -u <service>         -show only that service logs
+journalctl -u <service> --since “2 days ago”            -show that service
+                   logs from up to 2 days ago
+xpath -q -e '//element/@attribute' file.xml
+Day 10
+Types of memory:
+Volatile-non-persistent-requires power to maintain stored information
+        Ex:RAM, CPU cache
+Non-volatile-persistent-does not require continuous poweroff
+        Ex:HDD, USB
+Active Directory (AD) is a Microsoft technology used to manage computers and other devices on a network. Active Directory allows network administrators to create and manage domains, users, and objects within a network
+Active Directory structure includes three main tiers: domains, trees, and forests
+Domains-Active Directory objects (users or devices) that all use the same database or ar typically in the same location
+Trees-Several Domains grouped together. Typically, has a primary domain controller for the entire tree
+Forests-Forests are groups of trees connected together via trust relationships
+
+
+
+Get-Command -Module activedirectory
+Get-ADDefaultDomainPasswordPolicy
+Get-ADFineGrainedPasswordPolicy -Filter {name -like "*"}
+Get-ADForest
+Get-ADDomain
+Get-ADGroup -Filter *
+Get-ADGroup -Identity 'IA Analysts Team'
+Get-ADGroupMember -Identity 'IA Analysts Team' -Recursive
+Get-ADUser -Filter 'Name -like "*"'
+Get-ADUser -Identity 'Nina.Webster' -Properties Description
+get-aduser -filter {Enabled -eq "FALSE"} -properties name, enabled
+Enable-ADAccount -Identity guest
+Get-AdGroupMember -identity "Domain Admins" -Recursive | %{Get-ADUser -identity $_.DistinguishedName} | select name, Enabled
+
+Review
+===================================================================
+
+Review
+Exam IP: http://10.50.20.125:8000
+
+Windows
+Identify open ports:
+get-nettcpconnection
+netstat -ano / -anob – shows what service is running on what port
+sysinternals – tcpview.exe
+
+
+Indicators of suspicious ports:
+consecutive numbers
+same numbers – 4444, etc
+patterns
+search ports - https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml
+
+Processes:
+get-process
+tasklist – cmd
+task manager - gui
+sysinternals – procmon.exe
+
+Indicators of suspicious processes:
+system processes not running out of standard directory
+misspellings
+
+Persistence:
+Powershell profiles - $psprofiles-precedence, get-content to view profile
+Registry run keys – regedit.exe, regquery
+Scheduled tasks – task scheduler-gui
+
+Tools for persistence:
+get-scheduledtask | select * | select -first 1
+sysinternals – autoruns
+https://os.cybbh.io/public/os/latest/015_windows_sysinternals/sysint_fg.html
+
+Artifacts:
+doesn’t have to mean persistence; however it show evidence of what someone might have done on a system
+bam, user assist, jump list, etc
+https://os.cybbh.io/public/os/latest/011_windows_auditing_&_logging/artifacts_fg.html
+
+Powershell commands:
+get-childitem(gci), get-item, get-property, get-itemproperty
+
+Linux
+Ports:
+netstat -ano, -anop, -ltup
+
+Indicators of suspicious ports:
+consecutive numbers
+same numbers – 4444, etc
+patterns
+
+Processes:
+ps -elf
+top
+htop
+
+Indicators of suspicious processes:
+system processes not running out of standard directory
+misspellings
+
+Persistence:
+/etc/profile
+bash profile
+system profile
+user profile
+/etc/inittab
+cron jobs –
+https://os.cybbh.io/public/os/latest/010_linux_process_validity/linproc_fg.html
+
+Commands:
+sudo !! - rerun previous command with sudo privileges
+sudo to elevate commands
+ls -l – view permissions: owner, group, others
