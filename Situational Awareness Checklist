@@ -1,0 +1,12 @@
+Situation Awareness Checklist:
+hostname/uname -a
+whoami/w
+pwd
+sudo -l -list what you can sudo
+cat /etc/hosts and /etc/services
+ps -elf
+netstat -ntlpu          -listening ports    or          ss -ntlpu
+ifconfig/ip/ip a for addresses
+arp/ip neigh/ip n
+route/ip route/ip r
+check any other important directories as directed
