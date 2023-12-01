@@ -1,0 +1,43 @@
+Standard ACL should be placed as close to destination as possible
+Extended should be placed as close to source as possible
+
+IDS/IPS Recognition Methods:
+Signature-looking for known signature
+Heuristic/Behavioral-looking at baseline and looking for behaviors outside of baseline
+
+SNORT HEADER:
+<action> <protocol> <s.ip> <s.port> <direction> <d.ip> <d.port> ( match conditions ;)
+Actions:
+alert, log, pass, drop, reject, sdrop
+protocol:
+TCP, UDP, ICMP, IP (TCP, UDP, and ICMP combined)
+Direction:
+incoming (→), either direction (<>)
+SNORT Rule Options:
+msg, reference, sid, rev, classtype, priority (1=bad, 3=info), metadata
+SID should be 1 million or higher
+SNORT Demo:
+cd /etc/snort
+ls -l rules/
+cat rules/icmp.rules
+snort --version +
+sudo snort -D -l /var/log/snort/ -c /etc/snort/snort.conf
+ps -elf | grep snort
+sudo cat /var/log/snort/alert
+sudo tcpdump -r /var/log/snort/snort.log.<log number>
+sudo tcpdump -vvXntr /var/log/snort/snort.log.<log number>
+sudo tcpdump -tnr /var/log/snort/snort.log.1540828602 | awk '{print $2} {print $4}' | sort | sed 's/:$//' | uniq -c
+        lists all IPs in captured traffic
+sudo snort -r snort.log.<log number>
+ps -elf | grep snort*
+kill -9 <PID>
+sudo vim rules/icmp.rules
+snort -D -l /var/log/snort/ -c /etc/snort/snort.conf
+sudo snort -c snort.conf                run snort in terminal
+sudo snort -T -c /etc/snort/snort.conf
+
+Failed IDS/IPS:
+If it fails open, all traffic would get through, regardless of threat
+If it fails closed, the network will be isolated from outside networks
+
+sudo snort -r /home/activity_resources/pcaps/ids.pcap -c snort.rule
